@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Users, FileText, Activity, AlertTriangle, Ban, ShieldCheck,
-  CheckCircle2, XCircle, Trash2, Eye,
+  CheckCircle2, XCircle, Trash2,
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import {

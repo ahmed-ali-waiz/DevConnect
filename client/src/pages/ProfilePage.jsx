@@ -211,6 +211,13 @@ const ProfilePage = () => {
               </Button>
             </div>
           )}
+          {isOwnProfile && (
+            <div className="flex space-x-2 z-10 pt-4">
+              <Button variant="ghost" className="px-6 border border-(--border-glass)" onClick={() => navigate('/settings')}>
+                Edit Profile
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Profile Info */}

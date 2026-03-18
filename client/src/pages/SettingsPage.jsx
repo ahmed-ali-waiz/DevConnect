@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, Lock, Bell, Moon, EyeOff, ShieldAlert, Check } from 'lucide-react';
+import { User, Lock, Bell, Moon, EyeOff, ShieldAlert, Check, Camera, X } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import toast from 'react-hot-toast';
 import Button from '../components/ui/Button';
@@ -21,6 +21,18 @@ const SettingsPage = () => {
   const [formData, setFormData] = useState({
     name: '', username: '', email: '', bio: '', location: '', website: '', github: '',
   });
+
+  // Profile picture / cover image upload state
+  const [profilePicFile, setProfilePicFile] = useState(null);
+  const [profilePicPreview, setProfilePicPreview] = useState(null);
+  const [coverImageFile, setCoverImageFile] = useState(null);
+  const [coverImagePreview, setCoverImagePreview] = useState(null);
+  const profilePicInputRef = useRef(null);
+  const coverImageInputRef = useRef(null);
+
+  // Skills state
+  const [skills, setSkills] = useState([]);
+  const [skillInput, setSkillInput] = useState('');
 
   // Security state
   const [securityForm, setSecurityForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -51,6 +63,7 @@ const SettingsPage = () => {
         website: user.website || '',
         github: user.github || '',
       });
+      setSkills(user.skills || []);
       if (user.notificationPreferences) {
         setNotifPrefs(user.notificationPreferences);
       }
