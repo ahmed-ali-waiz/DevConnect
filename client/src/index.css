@@ -1,0 +1,143 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-glass: var(--bg-glass);
+  --color-border-glass: var(--border-glass);
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-secondary: var(--accent-secondary);
+  --color-accent-green: var(--accent-green);
+  --color-accent-orange: var(--accent-orange);
+  --color-text-primary: var(--text-primary);
+  --color-text-muted: var(--text-muted);
+  --color-text-dim: var(--text-dim);
+}
+
+/* 60-30-10 Design System */
+/* 60% Dominant: --bg-primary (Deep Space Dark) */
+/* 30% Secondary: --bg-secondary & --bg-glass (Surfaces & Cards) */
+/* 10% Accent: --accent-primary & --accent-secondary (Interactive Elements & Gradients) */
+:root {
+  --bg-primary: #030712;       /* 60% - Richer Dark (Gray 950) */
+  --bg-secondary: #0F172A;     /* 30% - Elevated Slate */
+  --bg-glass: rgba(30, 41, 59, 0.4);  /* 30% - Professional Glass */
+  --border-glass: rgba(255, 255, 255, 0.06);
+  --accent-primary: #38BDF8;   /* 10% - Professional Sky Blue */
+  --accent-secondary: #818CF8; /* 10% - Indigo */
+  --accent-green: #34D399;     /* Emerald */
+  --accent-orange: #FB923C;    /* Orange */
+  --text-primary: #F8FAFC;
+  --text-muted: #94A3B8;
+  --text-dim: #475569;
+  --shadow-glow: 0 0 30px rgba(56, 189, 248, 0.15);
+}
+
+[data-theme='light'] {
+  --bg-primary: #F8FAFC;      /* 60% */
+  --bg-secondary: #FFFFFF;    /* 30% */
+  --bg-glass: rgba(0, 0, 0, 0.03);
+  --border-glass: rgba(0, 0, 0, 0.08);
+  --accent-primary: #0EA5E9;   /* 10% Accent */
+  --accent-secondary: #8B5CF6;
+  --accent-green: #10B981;
+  --accent-orange: #F97316;
+  --text-primary: #0F172A;
+  --text-muted: #475569;
+  --text-dim: #94A3B8;
+  --shadow-glow: 0 0 20px rgba(14, 165, 233, 0.15);
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+body {
+  background-color: var(--bg-primary);
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(110, 231, 247, 0.03), transparent 25%),
+    radial-gradient(circle at 85% 30%, rgba(167, 139, 250, 0.03), transparent 25%);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6, .font-display {
+  font-family: 'Syne', sans-serif;
+}
+
+code, pre, .font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.glass-card {
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: 1.5rem;
+}
+
+.input-field {
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  color: var(--text-primary);
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  transition: all 0.3s;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 1px var(--accent-glow, rgba(110,231,247,0.3));
+  background: rgba(255,255,255,0.06);
+}
+
+[data-theme='light'] .input-field:focus {
+  background: rgba(0,0,0,0.02);
+}
+
+[data-theme='light'] .glass-card {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.input-field::placeholder {
+  color: var(--text-muted);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border-glass);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+.animate-gradient-slow {
+  background-size: 200% 200%;
+  animation: gradient 3s ease infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
