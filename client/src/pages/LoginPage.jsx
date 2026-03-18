@@ -55,7 +55,7 @@ const LoginPage = () => {
   useGSAP(() => {
     // Left panel particles animation
     const dots = gsap.utils.toArray('.particle-dot');
-    dots.forEach((dot, i) => {
+    dots.forEach((dot) => {
       gsap.to(dot, {
         y: '+=30',
         x: '+=15',
