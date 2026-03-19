@@ -7,7 +7,7 @@ import Avatar from '../ui/Avatar';
 import { createConversation, sendMessage } from '../../services/chatService';
 import { viewStory, deleteStory } from '../../services/storyService';
 
-const StoryViewer = ({ stories, initialIdx, onClose }) => {
+const StoryViewer = ({ stories, initialIdx, onClose, onStoryDelete }) => {
   const [currentIdx, setCurrentIdx] = useState(initialIdx);
   const [progress, setProgress] = useState(0);
   const [replyText, setReplyText] = useState('');
@@ -57,6 +57,7 @@ const StoryViewer = ({ stories, initialIdx, onClose }) => {
     try {
       await deleteStory(currentStory._id);
       toast.success('Story deleted');
+      if(onStoryDelete) onStoryDelete(currentStory._id);
       // If this was the last story, close viewer; otherwise advance
       if (stories.length <= 1) {
         onClose();
@@ -158,10 +159,10 @@ const StoryViewer = ({ stories, initialIdx, onClose }) => {
         </div>
 
         {/* Desktop Navigation Arrows */}
-        <button onClick={handlePrev} className="hidden sm:flex absolute left-[-60px] top-1/2 -translate-y-1/2 z-30 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full items-center justify-center text-white transition-all backdrop-blur-md">
+        <button onClick={handlePrev} className="hidden sm:flex absolute left-\[-60px\] top-1/2 -translate-y-1/2 z-30 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full items-center justify-center text-white transition-all backdrop-blur-md">
           <ChevronLeft size={24} />
         </button>
-        <button onClick={handleNext} className="hidden sm:flex absolute right-[-60px] top-1/2 -translate-y-1/2 z-30 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full items-center justify-center text-white transition-all backdrop-blur-md">
+        <button onClick={handleNext} className="hidden sm:flex absolute right\-[-60px\] top-1/2 -translate-y-1/2 z-30 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full items-center justify-center text-white transition-all backdrop-blur-md">
           <ChevronRight size={24} />
         </button>
 
