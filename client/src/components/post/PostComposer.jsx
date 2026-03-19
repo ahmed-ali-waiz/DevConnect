@@ -520,10 +520,6 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
                       <option value="rust">Rust</option>
                       <option value="go">Go</option>
                     </select>
-                    <button
-                      type="button"
-                      onChange={(e) => setCodeData({ ...codeData, language: e.target.value })}
-                    />
                     {!codeOnly && (
                     <button
                       type="button"

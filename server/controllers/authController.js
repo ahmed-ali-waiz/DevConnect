@@ -14,7 +14,8 @@ import { validateEmail, validateUsername, validatePassword } from "../utils/vali
 // @route   POST /api/v1/auth/register
 export const register = async (req, res, next) => {
   try {
-    const { name, username, email, password } = req.body;
+    const { name, username, password } = req.body;
+    const email = (req.body.email || '').toLowerCase().trim();
 
     // Validations
     if (!name || !username || !email || !password) {
@@ -80,7 +81,8 @@ export const register = async (req, res, next) => {
 // @route   POST /api/v1/auth/login
 export const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { password } = req.body;
+    const email = (req.body.email || '').toLowerCase().trim();
 
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password are required" });
@@ -153,7 +155,7 @@ export const checkUsername = async (req, res, next) => {
 // @route   POST /api/v1/auth/forgot-password
 export const forgotPassword = async (req, res, next) => {
   try {
-    const { email } = req.body;
+    const email = (req.body.email || '').toLowerCase().trim();
     if (!email) return res.status(400).json({ message: "Email is required" });
 
     const user = await User.findOne({ email });
@@ -168,11 +170,20 @@ export const forgotPassword = async (req, res, next) => {
     await user.save();
 
     const resetUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/reset-password?token=${resetToken}`;
-    await sendEmail({
-      to: user.email,
-      subject: "DevConnect Password Reset",
-      html: `<h2>Password Reset</h2><p>Click <a href="${resetUrl}">here</a> to reset your password. This link expires in 1 hour.</p><p>If you didn't request this, ignore this email.</p>`,
-    });
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: "DevConnect Password Reset",
+        html: `<h2>Password Reset</h2><p>Click <a href="${resetUrl}">here</a> to reset your password. This link expires in 1 hour.</p><p>If you didn't request this, ignore this email.</p>`,
+      });
+    } catch (emailError) {
+      console.error("Failed to send password reset email:", emailError.message);
+      // Clean up the token since the email wasn't delivered
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpires = undefined;
+      await user.save();
+      return res.status(500).json({ message: "Failed to send reset email. Please try again later." });
+    }
 
     res.json({ message: "If that email is registered, a reset link has been sent." });
   } catch (error) {
@@ -259,11 +270,20 @@ export const resendVerification = async (req, res, next) => {
     await user.save();
 
     const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/verify-email?token=${verifyToken}`;
-    await sendEmail({
-      to: user.email,
-      subject: "Verify your DevConnect email",
-      html: `<h2>Email Verification</h2><p>Click <a href="${verifyUrl}">here</a> to verify your email. This link expires in 24 hours.</p>`,
-    });
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: "Verify your DevConnect email",
+        html: `<h2>Email Verification</h2><p>Click <a href="${verifyUrl}">here</a> to verify your email. This link expires in 24 hours.</p>`,
+      });
+    } catch (emailError) {
+      console.error("Failed to send verification email:", emailError.message);
+      // Clean up the token since the email wasn't delivered
+      user.emailVerificationToken = undefined;
+      user.emailVerificationExpires = undefined;
+      await user.save();
+      return res.status(500).json({ message: "Failed to send verification email. Please try again later." });
+    }
 
     res.json({ message: "Verification email sent" });
   } catch (error) {
