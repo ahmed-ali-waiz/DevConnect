@@ -14,7 +14,11 @@ const StoryBar = () => {
 
   useEffect(() => {
     getStoryFeed()
-      .then(data => setStories(data))
+      .then(data => {
+        // Flatten grouped stories into individual story objects
+        const flatStories = data.flatMap(group => group.stories);
+        setStories(flatStories);
+      })
       .catch(() => {});
   }, []);
 
@@ -37,7 +41,7 @@ const StoryBar = () => {
         >
           {/* Add Story Button */}
           <div
-            className="flex flex-col items-center flex-shrink-0 cursor-pointer group space-y-2"
+            className="flex flex-col items-center shrink-0 cursor-pointer group space-y-2"
             onClick={() => addStoryInputRef.current?.click()}
           >
             <div className="relative w-16 h-16 rounded-full border-2 border-(--border-glass) p-0.5 group-hover:border-(--text-muted) transition-colors">
@@ -59,7 +63,7 @@ const StoryBar = () => {
                 key={story._id || idx}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex flex-col items-center flex-shrink-0 cursor-pointer space-y-2"
+                className="flex flex-col items-center shrink-0 cursor-pointer space-y-2"
                 onClick={() => setActiveStoryIdx(idx)}
               >
                 <div className={`relative w-16 h-16 rounded-full p-0.5 ${!hasSeen ? 'bg-linear-to-tr from-(--accent-primary) to-(--accent-secondary)' : 'bg-(--border-glass)'}`}>
@@ -71,7 +75,7 @@ const StoryBar = () => {
                     />
                   </div>
                 </div>
-                <span className="text-xs text-(--text-primary) font-medium max-w-[64px] truncate">{storyUser.username}</span>
+                <span className="text-xs text-(--text-primary) font-medium max-w-16 truncate">{storyUser.username}</span>
               </motion.div>
             );
           })}
@@ -84,6 +88,7 @@ const StoryBar = () => {
             stories={stories}
             initialIdx={activeStoryIdx}
             onClose={() => setActiveStoryIdx(null)}
+            onStoryDelete={(id) => setStories(prev => prev.filter(s => s._id !== id))}
           />
         )}
       </AnimatePresence>
