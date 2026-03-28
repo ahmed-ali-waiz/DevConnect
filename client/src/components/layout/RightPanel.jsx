@@ -36,10 +36,18 @@ const RightPanel = () => {
   }, []);
 
   const handleFollow = async (userId) => {
+    // Optimistic update
+    const currentFollowState = following[userId];
+    setFollowing(prev => ({ ...prev, [userId]: !currentFollowState }));
+    
     try {
       const res = await toggleFollow(userId);
+      // Confirm with backend response
       setFollowing(prev => ({ ...prev, [userId]: res.following }));
-    } catch {}
+    } catch {
+      // Revert on error
+      setFollowing(prev => ({ ...prev, [userId]: currentFollowState }));
+    }
   };
 
   return (

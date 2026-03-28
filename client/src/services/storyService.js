@@ -19,6 +19,21 @@ export const viewStory = async (storyId) => {
   return data;
 };
 
+export const likeStory = async (storyId) => {
+  const { data } = await api.post(`/stories/${storyId}/like`);
+  return data;
+};
+
+export const getStoryViewers = async (storyId) => {
+  const { data } = await api.get(`/stories/${storyId}/viewers`);
+  return data;
+};
+
+export const getStoryLikes = async (storyId) => {
+  const { data } = await api.get(`/stories/${storyId}/likes`);
+  return data;
+};
+
 export const deleteStory = async (storyId) => {
   const { data } = await api.delete(`/stories/${storyId}`);
   return data;

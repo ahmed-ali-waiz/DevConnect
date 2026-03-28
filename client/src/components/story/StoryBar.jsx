@@ -8,16 +8,15 @@ import { getStoryFeed, createStory } from '../../services/storyService';
 
 const StoryBar = () => {
   const { user } = useSelector(state => state.auth);
-  const [activeStoryIdx, setActiveStoryIdx] = useState(null);
-  const [stories, setStories] = useState([]);
+  const [activeStoryGroup, setActiveStoryGroup] = useState(null);
+  const [storyGroups, setStoryGroups] = useState([]);
   const addStoryInputRef = useRef(null);
 
   useEffect(() => {
     getStoryFeed()
       .then(data => {
-        // Flatten grouped stories into individual story objects
-        const flatStories = data.flatMap(group => group.stories);
-        setStories(flatStories);
+        // Keep stories grouped by user as returned from backend
+        setStoryGroups(data);
       })
       .catch(() => {});
   }, []);
@@ -27,9 +26,30 @@ const StoryBar = () => {
     if (!file) return;
     try {
       const newStory = await createStory(file);
-      setStories(prev => [newStory, ...prev]);
+      // Add new story to current user's group or create new group
+      setStoryGroups(prev => {
+        const userGroupIdx = prev.findIndex(g => g.user._id === user._id);
+        if (userGroupIdx > -1) {
+          // Add to existing group
+          const updated = [...prev];
+          updated[userGroupIdx].stories.unshift(newStory);
+          return updated;
+        } else {
+          // Create new group for current user
+          return [{ user, stories: [newStory], hasSeen: false }, ...prev];
+        }
+      });
     } catch {}
     e.target.value = '';
+  };
+
+  const handleStoryDelete = (storyId) => {
+    setStoryGroups(prev => 
+      prev.map(group => ({
+        ...group,
+        stories: group.stories.filter(s => s._id !== storyId)
+      })).filter(group => group.stories.length > 0) // Remove empty groups
+    );
   };
 
   return (
@@ -54,17 +74,18 @@ const StoryBar = () => {
             <input ref={addStoryInputRef} type="file" accept="image/*,video/*" className="hidden" onChange={handleAddStory} />
           </div>
 
-          {/* Stories List */}
-          {stories.map((story, idx) => {
-            const storyUser = story.user || story.author || {};
-            const hasSeen = Array.isArray(story.viewers) && user && story.viewers.includes(user._id);
+          {/* Stories List - One per user */}
+          {storyGroups.map((group, groupIdx) => {
+            const storyUser = group.user;
+            const firstStory = group.stories[0];
+            const hasSeen = group.hasSeen;
             return (
               <motion.div
-                key={story._id || idx}
+                key={storyUser._id}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="flex flex-col items-center shrink-0 cursor-pointer space-y-2"
-                onClick={() => setActiveStoryIdx(idx)}
+                onClick={() => setActiveStoryGroup(groupIdx)}
               >
                 <div className={`relative w-16 h-16 rounded-full p-0.5 ${!hasSeen ? 'bg-linear-to-tr from-(--accent-primary) to-(--accent-secondary)' : 'bg-(--border-glass)'}`}>
                   <div className="w-full h-full rounded-full border-[3px] border-(--bg-primary) overflow-hidden">
@@ -74,6 +95,12 @@ const StoryBar = () => {
                       className="w-full h-full object-cover"
                     />
                   </div>
+                  {/* Story count indicator */}
+                  {group.stories.length > 1 && (
+                    <div className="absolute bottom-0 right-0 w-5 h-5 bg-zinc-900 border-2 border-(--bg-primary) rounded-full flex items-center justify-center">
+                      <span className="text-[10px] text-white font-semibold">{group.stories.length}</span>
+                    </div>
+                  )}
                 </div>
                 <span className="text-xs text-(--text-primary) font-medium max-w-16 truncate">{storyUser.username}</span>
               </motion.div>
@@ -83,12 +110,12 @@ const StoryBar = () => {
       </div>
 
       <AnimatePresence>
-        {activeStoryIdx !== null && stories.length > 0 && (
+        {activeStoryGroup !== null && storyGroups.length > 0 && (
           <StoryViewer
-            stories={stories}
-            initialIdx={activeStoryIdx}
-            onClose={() => setActiveStoryIdx(null)}
-            onStoryDelete={(id) => setStories(prev => prev.filter(s => s._id !== id))}
+            stories={storyGroups[activeStoryGroup].stories}
+            initialIdx={0}
+            onClose={() => setActiveStoryGroup(null)}
+            onStoryDelete={handleStoryDelete}
           />
         )}
       </AnimatePresence>
