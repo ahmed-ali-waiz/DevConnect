@@ -12,6 +12,11 @@ export const getExplorePosts = async (page = 1, limit = 10) => {
   return data;
 };
 
+export const getCodeFeed = async (page = 1, limit = 10) => {
+  const { data } = await api.get('/posts/code', { params: { page, limit } });
+  return data;
+};
+
 export const getBookmarks = async (page = 1, limit = 10) => {
   const { data } = await api.get('/posts/bookmarks', { params: { page, limit } });
   return data;
