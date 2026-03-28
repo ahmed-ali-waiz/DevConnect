@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { Heart, MessageSquare, Repeat2, Bookmark, Share, MoreHorizontal, Check, Trash2, Pencil, Pin, Flag, X as XIcon, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
+import { Heart, MessageSquare, Repeat2, Bookmark, Share, MoreHorizontal, Check, Trash2, Pencil, Pin, Flag, X as XIcon, ChevronLeft, ChevronRight, ExternalLink, Copy } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/atom-one-dark.css';
@@ -41,6 +41,7 @@ const PostCard = ({ post, defaultShowComments = false, highlightCommentId = null
   const [isBookmarked, setIsBookmarked] = useState(isBookmarkedByMe);
   const [repostCount, setRepostCount] = useState(post.repostCount ?? post.reposts?.length ?? 0);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [codeVisibleLines, setCodeVisibleLines] = useState(6);
   const [showComments, setShowComments] = useState(defaultShowComments);
   const [showMenu, setShowMenu] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -198,7 +199,7 @@ const PostCard = ({ post, defaultShowComments = false, highlightCommentId = null
       )}
 
       <div className="flex space-x-3">
-        <Link to={`/profile/${post.author.username}`} className="flex-shrink-0 z-10">
+        <Link to={`/profile/${post.author.username}`} className="shrink-0 z-10">
           <Avatar src={post.author.profilePic} alt={post.author.name} size="md" />
         </Link>
 
@@ -206,7 +207,7 @@ const PostCard = ({ post, defaultShowComments = false, highlightCommentId = null
           {/* Post Header */}
           <div className="flex justify-between items-start">
             <div className="flex items-center space-x-1.5 flex-wrap">
-              <Link to={`/profile/${post.author.username}`} className="font-bold text-(--text-primary) hover:underline truncate max-w-[150px] sm:max-w-xs text-sm sm:text-base">
+              <Link to={`/profile/${post.author.username}`} className="font-bold text-(--text-primary) hover:underline truncate max-w-\[150px\] sm:max-w-xs text-sm sm:text-base">
                 {post.author.name}
               </Link>
               {post.author.isVerified && (
@@ -314,7 +315,7 @@ const PostCard = ({ post, defaultShowComments = false, highlightCommentId = null
               className="mt-3 rounded-2xl overflow-hidden border border-(--border-glass) cursor-zoom-in"
               onClick={() => setLightboxIdx(0)}
             >
-              <img src={images[0]} alt="Post attachment" className="w-full object-cover max-h-[500px]" loading="lazy" />
+              <img src={images[0]} alt="Post attachment" className="w-full object-cover max-h-\[500px\]" loading="lazy" />
             </div>
           )}
           {images.length > 1 && (
@@ -346,34 +347,72 @@ const PostCard = ({ post, defaultShowComments = false, highlightCommentId = null
           )}
           {post.video && (
             <div className="mt-3 rounded-2xl overflow-hidden border border-(--border-glass)">
-              <video src={post.video} controls className="w-full max-h-[500px] bg-black" />
+              <video src={post.video} controls className="w-full max-h-\[500px\] bg-black" />
             </div>
           )}
 
           {/* Code Snippet — only render when there's actual code */}
-          {post.codeSnippet?.code && (
-            <div className="mt-3 rounded-xl overflow-hidden border border-[#333] bg-[#1e1e1e]">
-              <div className="flex justify-between items-center px-4 py-2 bg-[#252526] border-b border-[#333]">
-                <span className="text-xs text-[#cccccc] font-mono">{post.codeSnippet.language}</span>
-                <button
-                  onClick={() => copyToClipboard(post.codeSnippet.code)}
-                  className="text-[#cccccc] hover:text-white transition-colors text-xs font-mono"
-                  aria-label="Copy code"
-                >
-                  {copiedCode ? <Check size={14} className="text-green-400" /> : 'Copy'}
-                </button>
+          {post.codeSnippet?.code && (() => {
+            const codeLines = post.codeSnippet.code.split('\n');
+            const totalLines = codeLines.length;
+            const initialLines = 6;
+            const hasMoreLines = totalLines > codeVisibleLines;
+            const isExpanded = codeVisibleLines > initialLines;
+            const displayCode = codeLines.slice(0, codeVisibleLines).join('\n');
+            const remainingLines = totalLines - codeVisibleLines;
+
+            const handleShowMore = () => {
+              setCodeVisibleLines(prev => Math.min(prev + 30, totalLines));
+            };
+
+            const handleShowLess = () => {
+              setCodeVisibleLines(initialLines);
+            };
+
+            return (
+              <div className="mt-3 rounded-xl overflow-hidden border border-[#333] bg-[#1e1e1e]">
+                <div className="flex justify-between items-center px-4 py-2 bg-[#252526] border-b border-[#333]">
+                  <span className="text-xs text-[#cccccc] font-mono">{post.codeSnippet.language}</span>
+                  <button
+                    onClick={() => copyToClipboard(post.codeSnippet.code)}
+                    className="text-[#cccccc] hover:text-white transition-colors"
+                    aria-label="Copy code"
+                  >
+                    {copiedCode ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+                  </button>
+                </div>
+                <div className="p-4 overflow-x-auto text-[13px] sm:text-sm font-mono leading-tight custom-scrollbar">
+                  <pre>
+                    <code
+                      dangerouslySetInnerHTML={{
+                        __html: hljs.highlight(displayCode, { language: post.codeSnippet.language || 'javascript' }).value
+                      }}
+                    />
+                  </pre>
+                </div>
+                {(hasMoreLines || isExpanded) && (
+                  <div className="flex bg-[#252526] border-t border-[#333]">
+                    {hasMoreLines && (
+                      <button
+                        onClick={handleShowMore}
+                        className="flex-1 py-2 text-xs font-medium text-(--accent-primary) hover:text-(--accent-secondary) transition-colors"
+                      >
+                        Show more ({remainingLines} lines remaining)
+                      </button>
+                    )}
+                    {isExpanded && (
+                      <button
+                        onClick={handleShowLess}
+                        className="flex-1 py-2 text-xs font-medium text-(--text-muted) hover:text-(--text-primary) transition-colors border-l border-[#333]"
+                      >
+                        Show less
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
-              <div className="p-4 overflow-x-auto text-[13px] sm:text-sm font-mono leading-tight custom-scrollbar">
-                <pre>
-                  <code
-                    dangerouslySetInnerHTML={{
-                      __html: hljs.highlight(post.codeSnippet.code, { language: post.codeSnippet.language || 'javascript' }).value
-                    }}
-                  />
-                </pre>
-              </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Link Preview Card */}
           {post.linkPreview?.url && (
@@ -428,12 +467,6 @@ const PostCard = ({ post, defaultShowComments = false, highlightCommentId = null
                 </motion.div>
               </div>
               <span className={`text-xs font-semibold ${isLiked ? 'text-red-500' : ''}`}>{likeCount}</span>
-            </button>
-
-            <button onClick={handleShare} className="group flex items-center space-x-2 transition-colors hover:text-(--accent-primary)">
-              <div className="p-2 rounded-full group-hover:bg-(--accent-primary)/10 transition-colors">
-                <Share size={18} className="group-hover:text-(--accent-primary) transition-colors" />
-              </div>
             </button>
 
             <button onClick={handleBookmark} className={`group flex items-center space-x-2 transition-colors hover:text-(--accent-secondary) ${isBookmarked ? 'text-(--accent-secondary)' : ''}`}>
@@ -508,7 +541,7 @@ const PostCard = ({ post, defaultShowComments = false, highlightCommentId = null
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-sm flex items-center justify-center"
+            className="fixed inset-0 z-\[9999\] bg-black/90 backdrop-blur-sm flex items-center justify-center"
             onClick={() => setLightboxIdx(null)}
           >
             {/* Close */}
