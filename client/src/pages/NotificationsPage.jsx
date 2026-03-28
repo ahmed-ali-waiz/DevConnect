@@ -66,13 +66,27 @@ const NotificationsPage = () => {
   };
 
   const handleFollowBack = async (senderId) => {
+    // Optimistic update
+    const updatedFollowing = currentUser.following
+      ? [...currentUser.following, senderId]
+      : [senderId];
+    dispatch(updateProfileOptimistic({ following: updatedFollowing }));
+    
     try {
-      await toggleFollow(senderId);
-      const updatedFollowing = currentUser.following
-        ? [...currentUser.following, senderId]
-        : [senderId];
-      dispatch(updateProfileOptimistic({ following: updatedFollowing }));
-    } catch {}
+      const response = await toggleFollow(senderId);
+      // Confirm with backend
+      if (!response.following) {
+        // Revert if backend says not following
+        dispatch(updateProfileOptimistic({ 
+          following: currentUser.following || [] 
+        }));
+      }
+    } catch {
+      // Revert on error
+      dispatch(updateProfileOptimistic({ 
+        following: currentUser.following || [] 
+      }));
+    }
   };
 
   const handleMessage = async (senderId) => {

@@ -1,23 +1,48 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X as CloseIcon, ChevronLeft, ChevronRight, MoreHorizontal, MessageCircle, Trash2 } from 'lucide-react';
+import { X as CloseIcon, ChevronLeft, ChevronRight, MoreHorizontal, MessageCircle, Trash2, Heart, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Avatar from '../ui/Avatar';
 import { createConversation, sendMessage } from '../../services/chatService';
-import { viewStory, deleteStory } from '../../services/storyService';
+import { viewStory, deleteStory, likeStory, getStoryViewers, getStoryLikes } from '../../services/storyService';
+import StoryEngagementModal from './StoryEngagementModal';
 
 const StoryViewer = ({ stories, initialIdx, onClose, onStoryDelete }) => {
   const [currentIdx, setCurrentIdx] = useState(initialIdx);
   const [progress, setProgress] = useState(0);
   const [replyText, setReplyText] = useState('');
   const [isSendingReply, setIsSendingReply] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(0);
+  const [viewersCount, setViewersCount] = useState(0);
+  const [showViewersModal, setShowViewersModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isPaused, setIsPaused] = useState(false); // Track if story is paused
   const viewedRef = useRef(new Set());
   const STORY_DURATION = 5000; // 5 seconds
 
   const currentUser = useSelector((state) => state.auth.user);
   const currentStory = stories[currentIdx];
   const isOwnStory = currentUser && currentStory?.user?._id === currentUser._id;
+
+  // Initialize engagement data when story changes
+  useEffect(() => {
+    if (currentStory) {
+      setIsLiked(currentStory.hasLiked || false);
+      setLikesCount(currentStory.likesCount || 0);
+      setViewersCount(currentStory.viewersCount || 0);
+    }
+  }, [currentIdx, currentStory]);
+
+  // Pause story when modals are open
+  useEffect(() => {
+    if (showViewersModal || showDeleteModal) {
+      setIsPaused(true);
+    } else {
+      setIsPaused(false);
+    }
+  }, [showViewersModal, showDeleteModal]);
 
   const handleNext = () => {
     if (currentIdx < stories.length - 1) {
@@ -69,6 +94,17 @@ const StoryViewer = ({ stories, initialIdx, onClose, onStoryDelete }) => {
     }
   };
 
+  // Like/Unlike story
+  const handleLikeToggle = async () => {
+    try {
+      const response = await likeStory(currentStory._id);
+      setIsLiked(response.liked);
+      setLikesCount(response.likesCount);
+    } catch (err) {
+      toast.error('Failed to like story');
+    }
+  };
+
   // Mark story as viewed when displayed
   useEffect(() => {
     if (currentStory && !viewedRef.current.has(currentStory._id)) {
@@ -77,19 +113,32 @@ const StoryViewer = ({ stories, initialIdx, onClose, onStoryDelete }) => {
     }
   }, [currentIdx, currentStory]);
 
+  // Progress timer - pauses when typing
   useEffect(() => {
     const timer = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          handleNext();
-          return 0;
-        }
-        return prev + (100 / (STORY_DURATION / 100)); // Update every 100ms
-      });
+      if (!isPaused) {
+        setProgress((prev) => {
+          if (prev >= 100) {
+            handleNext();
+            return 0;
+          }
+          return prev + (100 / (STORY_DURATION / 100)); // Update every 100ms
+        });
+      }
     }, 100);
 
     return () => clearInterval(timer);
-  }, [currentIdx]);
+  }, [currentIdx, isPaused]);
+
+  // Handle input focus - pause story
+  const handleInputFocus = () => {
+    setIsPaused(true);
+  };
+
+  // Handle input blur - resume story
+  const handleInputBlur = () => {
+    setIsPaused(false);
+  };
 
   return (
     <motion.div 
@@ -126,7 +175,11 @@ const StoryViewer = ({ stories, initialIdx, onClose, onStoryDelete }) => {
           </div>
           <div className="flex space-x-2">
             {isOwnStory && (
-              <button onClick={handleDeleteStory} className="p-1 hover:bg-red-500/30 rounded-full transition-colors" title="Delete story">
+              <button 
+                onClick={() => setShowDeleteModal(true)} 
+                className="p-1 hover:bg-red-500/30 rounded-full transition-colors" 
+                title="Delete story"
+              >
                 <Trash2 size={20} />
               </button>
             )}
@@ -166,21 +219,126 @@ const StoryViewer = ({ stories, initialIdx, onClose, onStoryDelete }) => {
           <ChevronRight size={24} />
         </button>
 
-        {/* Footer (Reply) */}
-        <form onSubmit={handleReply} className="absolute bottom-0 left-0 right-0 p-4 z-20 bg-linear-to-t from-black/80 to-transparent flex items-center space-x-3">
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              placeholder={`Reply to ${currentStory.user.username}...`}
-              value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
-              className="w-full bg-white/10 border border-white/20 rounded-full py-2.5 px-4 text-sm text-white placeholder-white/60 focus:outline-none focus:bg-white/20 transition-all backdrop-blur-md"
-            />
-          </div>
-          <button type="submit" disabled={!replyText.trim() || isSendingReply} className="p-2.5 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-            <MessageCircle size={20} />
-          </button>
-        </form>
+        {/* Footer (Reply & Engagement) */}
+        <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/80 to-transparent">
+          {/* Engagement Counts (only for own stories) */}
+          {isOwnStory && viewersCount > 0 && (
+            <div className="flex items-center gap-4 px-4 py-2 text-white text-sm">
+              <button
+                onClick={() => setShowViewersModal(true)}
+                className="flex items-center gap-1.5 hover:text-blue-400 transition-colors"
+              >
+                <Eye size={16} />
+                <span>{viewersCount} {viewersCount === 1 ? 'view' : 'views'}</span>
+                {likesCount > 0 && (
+                  <span className="flex items-center gap-1 ml-2">
+                    <Heart size={14} className="fill-red-500 text-red-500" />
+                    <span className="text-zinc-300">{likesCount}</span>
+                  </span>
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* Reply & Like Actions */}
+          <form onSubmit={handleReply} className="p-4 flex items-center space-x-3">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                placeholder={`Reply to ${currentStory.user.username}...`}
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                onFocus={handleInputFocus}
+                onBlur={handleInputBlur}
+                className="w-full bg-white/10 border border-white/20 rounded-full py-2.5 px-4 text-sm text-white placeholder-white/60 focus:outline-none focus:bg-white/20 transition-all backdrop-blur-md"
+              />
+            </div>
+            
+            {/* Like Button */}
+            {!isOwnStory && (
+              <motion.button
+                type="button"
+                onClick={handleLikeToggle}
+                whileTap={{ scale: 0.8 }}
+                className="p-2.5 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur-md transition-colors"
+              >
+                <Heart
+                  size={20}
+                  className={isLiked ? 'fill-red-500 text-red-500' : ''}
+                />
+              </motion.button>
+            )}
+
+            <button
+              type="submit"
+              disabled={!replyText.trim() || isSendingReply}
+              className="p-2.5 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <MessageCircle size={20} />
+            </button>
+          </form>
+        </div>
+
+        {/* Delete Confirmation Overlay */}
+        <AnimatePresence>
+          {showDeleteModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm px-6"
+              onClick={() => setShowDeleteModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                className="bg-zinc-900/95 backdrop-blur-xl border border-zinc-700/50 rounded-2xl shadow-2xl p-6 w-full max-w-xs"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Icon */}
+                <div className="flex justify-center mb-4">
+                  <div className="p-3 bg-red-500/10 rounded-full">
+                    <Trash2 className="w-6 h-6 text-red-500" />
+                  </div>
+                </div>
+
+                {/* Title & Message */}
+                <h3 className="text-white text-lg font-semibold text-center mb-2">
+                  Delete Story?
+                </h3>
+                <p className="text-zinc-400 text-sm text-center mb-6 leading-relaxed">
+                  Do you really want to delete? This story will be permanently deleted and can't be recovered.
+                </p>
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowDeleteModal(false)}
+                    className="flex-1 px-4 py-2.5 text-sm font-medium text-zinc-300 bg-zinc-800/80 hover:bg-zinc-700 rounded-xl transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDeleteStory}
+                    className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-lg shadow-red-500/20"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Engagement Modal */}
+        <StoryEngagementModal
+          isOpen={showViewersModal}
+          onClose={() => setShowViewersModal(false)}
+          title="Story Views"
+          fetchData={() => getStoryViewers(currentStory._id)}
+        />
       </div>
     </motion.div>
   );

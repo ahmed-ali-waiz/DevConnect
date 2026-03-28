@@ -96,14 +96,36 @@ const ProfilePage = () => {
   const handleFollow = async () => {
     if (!currentUser || !profile) return;
     setFollowLoading(true);
+    
+    // Calculate the action based on current state
+    const willBeFollowing = !isFollowing;
+    
+    // Optimistic update - update UI immediately
+    setProfile((p) => ({
+      ...p,
+      followers: willBeFollowing 
+        ? [...(p.followers || []), currentUser] 
+        : p.followers.filter((f) => String(f._id) !== String(currentUser._id)),
+    }));
+    
     try {
-      await toggleFollow(profile._id);
+      const response = await toggleFollow(profile._id);
+      // Verify with backend response
       setProfile((p) => ({
         ...p,
-        followers: isFollowing ? p.followers.filter((f) => String(f._id) !== String(currentUser._id)) : [...(p.followers || []), currentUser],
+        followers: willBeFollowing 
+          ? [...(p.followers || [])]
+          : p.followers.filter((f) => String(f._id) !== String(currentUser._id)),
       }));
-      toast.success(isFollowing ? 'Unfollowed' : 'Following');
-    } catch {
+      toast.success(willBeFollowing ? 'Following' : 'Unfollowed');
+    } catch (error) {
+      // Revert optimistic update on error
+      setProfile((p) => ({
+        ...p,
+        followers: willBeFollowing 
+          ? p.followers.filter((f) => String(f._id) !== String(currentUser._id))
+          : [...(p.followers || []), currentUser],
+      }));
       toast.error('Failed to update follow');
     } finally {
       setFollowLoading(false);

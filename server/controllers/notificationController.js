@@ -14,6 +14,7 @@ export const getNotifications = async (req, res, next) => {
       .limit(limit)
       .populate("sender", "name username profilePic")
       .populate("post", "text image")
+      .populate("story", "media mediaType")
       .populate({
         path: "comment",
         select: "text parentComment post",

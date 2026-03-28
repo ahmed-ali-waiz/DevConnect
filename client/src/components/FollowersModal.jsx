@@ -164,22 +164,48 @@ const FollowersModal = ({ isOpen, onClose, userId, initialTab = 'followers' }) =
 
   const handleToggleFollow = async (targetUserId) => {
     setFollowLoadingId(targetUserId);
-    try {
-      await toggleFollow(targetUserId);
+    
+    // Determine current follow state
+    const isCurrentlyFollowed = currentUser.following?.includes(targetUserId);
+    
+    // Optimistic update - update UI immediately
+    const updateList = (list) =>
+      list.map((u) => {
+        if (u._id === targetUserId) {
+          return { ...u, _followed: !isCurrentlyFollowed };
+        }
+        return u;
+      });
 
-      // Update the local lists to reflect the change
-      const updateList = (list) =>
+    setFollowers((prev) => updateList(prev));
+    setFollowing((prev) => updateList(prev));
+    
+    try {
+      const response = await toggleFollow(targetUserId);
+      
+      // Confirm with backend response
+      const finalUpdateList = (list) =>
         list.map((u) => {
           if (u._id === targetUserId) {
-            const isCurrentlyFollowed = currentUser.following?.includes(targetUserId);
-            return { ...u, _followed: !isCurrentlyFollowed };
+            return { ...u, _followed: response.following };
           }
           return u;
         });
 
-      setFollowers((prev) => updateList(prev));
-      setFollowing((prev) => updateList(prev));
+      setFollowers((prev) => finalUpdateList(prev));
+      setFollowing((prev) => finalUpdateList(prev));
     } catch (err) {
+      // Revert optimistic update on error
+      const revertList = (list) =>
+        list.map((u) => {
+          if (u._id === targetUserId) {
+            return { ...u, _followed: isCurrentlyFollowed };
+          }
+          return u;
+        });
+
+      setFollowers((prev) => revertList(prev));
+      setFollowing((prev) => revertList(prev));
       toast.error('Failed to update follow status');
     } finally {
       setFollowLoadingId(null);
