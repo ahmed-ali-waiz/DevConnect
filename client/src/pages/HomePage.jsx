@@ -8,13 +8,13 @@ import StoryBar from '../components/story/StoryBar';
 import PostComposer from '../components/post/PostComposer';
 import PostCard from '../components/post/PostCard';
 import Skeleton from '../components/ui/Skeleton';
-import { getFeed, getExplorePosts } from '../services/postService';
+import { getFeed, getExplorePosts, getCodeFeed } from '../services/postService';
 import { resendVerification } from '../services/authService';
 import { setFeed } from '../store/slices/postSlice';
 
 const HomePage = () => {
   const [activeTab, setActiveTab] = useState('For You');
-  const tabs = ['For You', 'Following', 'Trending', 'Posts'];
+  const tabs = ['For You', 'Following', 'Trending', 'Code'];
   const { feed } = useSelector(state => state.posts);
   const { user } = useSelector(state => state.auth);
   const [loading, setLoading] = useState(true);
@@ -64,9 +64,29 @@ const HomePage = () => {
     }
   };
 
+  const fetchCode = async (pageNum = 1, currentFeed = []) => {
+    try {
+      if (pageNum === 1) setLoading(true);
+      else setLoadingMore(true);
+      const data = await getCodeFeed(pageNum);
+      const posts = data.posts || [];
+      dispatch(setFeed(pageNum === 1 ? posts : [...currentFeed, ...posts]));
+      setHasMore(data.hasMore ?? false);
+      setPage(pageNum);
+    } catch {
+      if (pageNum === 1) dispatch(setFeed([]));
+      toast.error('Failed to load code posts');
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
   useEffect(() => {
-    if (activeTab === 'Trending' || activeTab === 'Posts') {
+    if (activeTab === 'Trending') {
       fetchExplore(1);
+    } else if (activeTab === 'Code') {
+      fetchCode(1);
     } else if (user) {
       fetchFeed(1, [], activeTab === 'Following' ? 'following' : undefined);
     }
@@ -74,8 +94,10 @@ const HomePage = () => {
 
   const loadMore = useCallback(() => {
     if (loadingMore || !hasMore || loading) return;
-    if (activeTab === 'Trending' || activeTab === 'Posts') {
+    if (activeTab === 'Trending') {
       fetchExplore(page + 1, feed);
+    } else if (activeTab === 'Code') {
+      fetchCode(page + 1, feed);
     } else {
       fetchFeed(page + 1, feed, activeTab === 'Following' ? 'following' : undefined);
     }
@@ -108,7 +130,7 @@ const HomePage = () => {
   const displayPosts = feed;
 
   return (
-    <div className="w-full flex-1 flex flex-col pt-[56px] md:pt-0"> {/* offset for mobile topbar */}
+    <div className="w-full flex-1 flex flex-col pt-\[56px] md:pt-0"> {/* offset for mobile topbar */}
       {/* Feed Layout header - Desktop visible, mobile sticky */}
       <div className="sticky top-14 md:top-0 z-20 bg-(--bg-primary)/80 backdrop-blur-md border-b border-(--border-glass)">
         <div className="hidden md:block px-4 py-4">
@@ -121,7 +143,7 @@ const HomePage = () => {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className="flex-1 min-w-[100px] text-center py-4 text-sm font-semibold relative text-(--text-muted) hover:bg-(--bg-glass) transition-colors group"
+              className="flex-1 min-w-\[100px\] text-center py-4 text-sm font-semibold relative text-(--text-muted) hover:bg-(--bg-glass) transition-colors group"
             >
               <span className={activeTab === tab ? 'text-(--text-primary)' : 'group-hover:text-(--text-primary) transition-colors'}>
                 {tab}
@@ -196,8 +218,8 @@ const HomePage = () => {
             </div>
           ) : displayPosts.length === 0 ? (
             <div className="py-16 text-center text-(--text-muted)">
-              <p className="text-lg mb-2">No posts yet</p>
-              <p className="text-sm">Follow some developers or explore trending posts!</p>
+              <p className="text-lg mb-2">{activeTab === 'Code' ? 'No code snippets yet' : 'No posts yet'}</p>
+              <p className="text-sm">{activeTab === 'Code' ? 'Be the first to share some code!' : 'Follow some developers or explore trending posts!'}</p>
               <button
                 onClick={() => setActiveTab('Trending')}
                 className="mt-4 text-(--accent-primary) hover:underline font-semibold"

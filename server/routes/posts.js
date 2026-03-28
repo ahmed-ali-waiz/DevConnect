@@ -1,6 +1,6 @@
 import express from "express";
 import {
-  createPost, getFeed, getExplorePosts, getPost, deletePost, editPost,
+  createPost, getFeed, getExplorePosts, getCodeFeed, getPost, deletePost, editPost,
   toggleLike, toggleRepost, toggleBookmark, getBookmarks, getUserPosts,
   getUserReplies, getUserLikedPosts, getUserMediaPosts, getUserCodePosts,
 } from "../controllers/postController.js";
@@ -12,6 +12,7 @@ const router = express.Router();
 
 router.get("/feed", protect, getFeed);
 router.get("/explore", getExplorePosts);
+router.get("/code", getCodeFeed);
 router.get("/bookmarks", protect, getBookmarks);
 router.get("/user/:userId/replies", getUserReplies);
 router.get("/user/:userId/liked", getUserLikedPosts);
