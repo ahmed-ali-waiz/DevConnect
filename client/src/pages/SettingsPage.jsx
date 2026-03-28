@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, Lock, Bell, Moon, EyeOff, ShieldAlert, Check } from 'lucide-react';
+import { User, Lock, Bell, Moon, EyeOff, ShieldAlert, Check, Camera, X } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import toast from 'react-hot-toast';
 import Button from '../components/ui/Button';
@@ -21,6 +21,14 @@ const SettingsPage = () => {
   const [formData, setFormData] = useState({
     name: '', username: '', email: '', bio: '', location: '', website: '', github: '',
   });
+
+  // Image upload state
+  const [profilePicFile, setProfilePicFile] = useState(null);
+  const [coverImageFile, setCoverImageFile] = useState(null);
+  const [profilePicPreview, setProfilePicPreview] = useState(null);
+  const [coverImagePreview, setCoverImagePreview] = useState(null);
+  const profilePicRef = useRef(null);
+  const coverImageRef = useRef(null);
 
   // Security state
   const [securityForm, setSecurityForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -60,6 +68,32 @@ const SettingsPage = () => {
     }
   }, [user]);
 
+  const handleProfilePicChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setProfilePicFile(file);
+    setProfilePicPreview(URL.createObjectURL(file));
+  };
+
+  const handleCoverImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCoverImageFile(file);
+    setCoverImagePreview(URL.createObjectURL(file));
+  };
+
+  const clearProfilePic = () => {
+    setProfilePicFile(null);
+    setProfilePicPreview(null);
+    if (profilePicRef.current) profilePicRef.current.value = '';
+  };
+
+  const clearCoverImage = () => {
+    setCoverImageFile(null);
+    setCoverImagePreview(null);
+    if (coverImageRef.current) coverImageRef.current.value = '';
+  };
+
   const sidebarItems = [
     { id: 'Account', icon: User },
     { id: 'Security', icon: Lock },
@@ -74,8 +108,13 @@ const SettingsPage = () => {
     setIsSaving(true);
     try {
       if (activeTab === 'Account') {
-        const updated = await updateProfile(formData);
+        const payload = { ...formData };
+        if (profilePicFile) payload.profilePic = profilePicFile;
+        if (coverImageFile) payload.coverImage = coverImageFile;
+        const updated = await updateProfile(payload);
         dispatch(updateProfileOptimistic(updated));
+        clearProfilePic();
+        clearCoverImage();
         toast.success('Settings saved!');
       } else if (activeTab === 'Security') {
         if (!securityForm.currentPassword || !securityForm.newPassword) {
@@ -170,7 +209,7 @@ const SettingsPage = () => {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`flex items-center space-x-3 px-4 py-2.5 rounded-xl transition-all whitespace-nowrap md:whitespace-normal flex-shrink-0 ${
+              className={`flex items-center space-x-3 px-4 py-2.5 rounded-xl transition-all whitespace-nowrap md:whitespace-normal shrink-0 ${
                 activeTab === item.id
                   ? item.danger
                     ? 'bg-red-500/10 text-red-500 font-semibold'
@@ -235,6 +274,86 @@ const SettingsPage = () => {
                     <input type="text" className="input-field w-full" value={formData.github} onChange={e => setFormData({ ...formData, github: e.target.value })} placeholder="github username" />
                   </div>
                 </div>
+
+                {/* Profile Images */}
+                <div className="pt-4 border-t border-(--border-glass)">
+                  <h3 className="text-sm font-medium text-(--text-primary) mb-4">Profile Images</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {/* Profile Picture */}
+                    <div>
+                      <label className="block text-sm font-medium text-(--text-muted) mb-2">Profile Picture</label>
+                      <div className="relative">
+                        <div className="w-24 h-24 rounded-full overflow-hidden bg-(--bg-glass) border-2 border-(--border-glass) relative group">
+                          <img
+                            src={profilePicPreview || user?.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=0D1117&color=6EE7F7`}
+                            alt="Profile"
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => profilePicRef.current?.click()}
+                            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                          >
+                            <Camera size={20} className="text-white" />
+                          </button>
+                        </div>
+                        {profilePicPreview && (
+                          <button
+                            type="button"
+                            onClick={clearProfilePic}
+                            className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
+                        <input
+                          ref={profilePicRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleProfilePicChange}
+                          className="hidden"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Cover Image */}
+                    <div>
+                      <label className="block text-sm font-medium text-(--text-muted) mb-2">Cover Image</label>
+                      <div className="relative">
+                        <div className="w-full h-24 rounded-lg overflow-hidden bg-(--bg-glass) border-2 border-(--border-glass) relative group">
+                          <img
+                            src={coverImagePreview || user?.coverImage || 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=400&auto=format&fit=crop'}
+                            alt="Cover"
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => coverImageRef.current?.click()}
+                            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                          >
+                            <Camera size={20} className="text-white" />
+                          </button>
+                        </div>
+                        {coverImagePreview && (
+                          <button
+                            type="button"
+                            onClick={clearCoverImage}
+                            className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
+                        <input
+                          ref={coverImageRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleCoverImageChange}
+                          className="hidden"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -281,8 +400,8 @@ const SettingsPage = () => {
                       <div className="w-16 h-10 rounded-md bg-[#050810] border border-[#222] mb-3 overflow-hidden flex flex-col">
                         <div className="h-2 bg-[#111] w-full" />
                         <div className="flex-1 bg-[#050810] flex gap-1 p-1">
-                          <div className="w-3 h-full bg-[#111] rounded-[2px]" />
-                          <div className="flex-1 h-full bg-[#111] rounded-[2px]" />
+                          <div className="w-3 h-full bg-[#111] rounded-\[2px\]" />
+                          <div className="flex-1 h-full bg-[#111] rounded-\[2px\]" />
                         </div>
                       </div>
                       <span className="text-sm font-medium">Dark Mode</span>
@@ -358,7 +477,7 @@ const SettingsPage = () => {
             {/* Save Button */}
             {activeTab !== 'Danger Zone' && activeTab !== 'Appearance' && (
               <div className="pt-4 flex justify-end">
-                <Button type="submit" isLoading={isSaving} className="min-w-[120px]">
+                <Button type="submit" isLoading={isSaving} className="min-w-\[120px\]">
                   Save Changes
                 </Button>
               </div>

@@ -9,7 +9,11 @@ export const getUserProfile = async (req, res, next) => {
     const user = await User.findOne({ username: req.params.username })
       .select("-bookmarks")
       .populate("followers", "name username profilePic")
-      .populate("following", "name username profilePic");
+      .populate("following", "name username profilePic")
+      .populate({
+        path: "pinnedPost",
+        populate: { path: "author", select: "name username profilePic" }
+      });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });

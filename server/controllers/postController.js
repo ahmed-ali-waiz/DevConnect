@@ -471,3 +471,34 @@ export const getUserCodePosts = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Get all code posts feed (posts with code snippets)
+// @route   GET /api/v1/posts/code?page=1&limit=10
+export const getCodeFeed = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const posts = await Post.find({
+      "codeSnippet.code": { $ne: "" },
+    })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate("author", "name username profilePic isVerified");
+
+    const total = await Post.countDocuments({
+      "codeSnippet.code": { $ne: "" },
+    });
+
+    res.json({
+      posts,
+      page,
+      totalPages: Math.ceil(total / limit),
+      hasMore: page * limit < total,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
