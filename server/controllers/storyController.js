@@ -98,6 +98,27 @@ export const createStory = async (req, res, next) => {
 
     await story.populate("user", "name username profilePic");
 
+    // Real-time: notify all online followers about the new story
+    const io = req.app.get("io");
+    const onlineUsers = req.app.get("onlineUsers");
+    const currentUser = await User.findById(req.user._id).select("followers");
+    if (currentUser?.followers?.length) {
+      const storyData = story.toObject();
+      currentUser.followers.forEach((followerId) => {
+        const followerSocketId = onlineUsers.get(followerId.toString());
+        if (followerSocketId) {
+          io.to(followerSocketId).emit("newStory", {
+            storyGroup: {
+              user: storyData.user,
+              stories: [storyData],
+              hasSeen: false,
+            },
+            story: storyData,
+          });
+        }
+      });
+    }
+
     res.status(201).json(story);
   } catch (error) {
     next(error);
@@ -115,6 +136,19 @@ export const viewStory = async (req, res, next) => {
     if (!story.user.equals(req.user._id) && !story.viewers.includes(req.user._id)) {
       story.viewers.push(req.user._id);
       await story.save();
+
+      // Real-time: notify story owner about new view
+      const io = req.app.get("io");
+      const onlineUsers = req.app.get("onlineUsers");
+      const ownerSocketId = onlineUsers.get(story.user.toString());
+      if (ownerSocketId) {
+        const viewer = await User.findById(req.user._id).select("name username profilePic bio");
+        io.to(ownerSocketId).emit("storyViewed", {
+          storyId: story._id,
+          viewersCount: story.viewers.length,
+          viewer: viewer?.toObject(),
+        });
+      }
     }
 
     res.json({ viewed: true, viewerCount: story.viewers.length });
@@ -148,8 +182,9 @@ export const likeStory = async (req, res, next) => {
     if (!story) return res.status(404).json({ message: "Story not found" });
 
     const likeIndex = story.likes.indexOf(req.user._id);
+    const isLiking = likeIndex === -1;
     
-    if (likeIndex > -1) {
+    if (!isLiking) {
       // Unlike - remove notification
       story.likes.splice(likeIndex, 1);
       await Notification.findOneAndDelete({
@@ -175,8 +210,23 @@ export const likeStory = async (req, res, next) => {
 
     await story.save();
 
+    // Real-time: notify story owner about like/unlike
+    const io = req.app.get("io");
+    const onlineUsers = req.app.get("onlineUsers");
+    const storyOwnerId = story.user.toString();
+    const ownerSocketId = onlineUsers.get(storyOwnerId);
+    if (ownerSocketId && !story.user.equals(req.user._id)) {
+      const liker = await User.findById(req.user._id).select("name username profilePic");
+      io.to(ownerSocketId).emit("storyLiked", {
+        storyId: story._id,
+        liked: isLiking,
+        likesCount: story.likes.length,
+        liker: liker?.toObject(),
+      });
+    }
+
     res.json({ 
-      liked: likeIndex === -1, 
+      liked: isLiking, 
       likesCount: story.likes.length 
     });
   } catch (error) {

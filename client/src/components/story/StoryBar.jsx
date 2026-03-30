@@ -5,12 +5,14 @@ import { useSelector } from 'react-redux';
 import Avatar from '../ui/Avatar';
 import StoryViewer from './StoryViewer';
 import { getStoryFeed, createStory } from '../../services/storyService';
+import { useSocket } from '../../context/SocketContext';
 
 const StoryBar = () => {
   const { user } = useSelector(state => state.auth);
   const [activeStoryGroup, setActiveStoryGroup] = useState(null);
   const [storyGroups, setStoryGroups] = useState([]);
   const addStoryInputRef = useRef(null);
+  const socket = useSocket();
 
   useEffect(() => {
     getStoryFeed()
@@ -21,6 +23,63 @@ const StoryBar = () => {
       .catch(() => {});
   }, []);
 
+  // Real-time: listen for new stories from friends
+  useEffect(() => {
+    if (!socket) return;
+    const newStoryHandler = ({ storyGroup, story }) => {
+      setStoryGroups(prev => {
+        const userId = story.user._id;
+        const existingIdx = prev.findIndex(g => g.user._id === userId);
+        if (existingIdx > -1) {
+          // Add story to existing group (immutable update)
+          const updated = [...prev];
+          updated[existingIdx] = {
+            ...updated[existingIdx],
+            stories: [story, ...updated[existingIdx].stories],
+            hasSeen: false,
+          };
+          // Move to front (unseen)
+          const [moved] = updated.splice(existingIdx, 1);
+          return [moved, ...updated];
+        }
+        // New group — add at the front
+        return [storyGroup, ...prev];
+      });
+    };
+
+    // Keep storyGroups data in sync when views/likes happen
+    const likeHandler = ({ storyId, liked, likesCount }) => {
+      setStoryGroups(prev =>
+        prev.map(group => ({
+          ...group,
+          stories: group.stories.map(s =>
+            s._id === storyId ? { ...s, likesCount, hasLiked: liked } : s
+          ),
+        }))
+      );
+    };
+
+    const viewHandler = ({ storyId, viewersCount }) => {
+      setStoryGroups(prev =>
+        prev.map(group => ({
+          ...group,
+          stories: group.stories.map(s =>
+            s._id === storyId ? { ...s, viewersCount } : s
+          ),
+        }))
+      );
+    };
+
+    socket.on('newStory', newStoryHandler);
+    socket.on('storyLiked', likeHandler);
+    socket.on('storyViewed', viewHandler);
+    return () => {
+      socket.off('newStory', newStoryHandler);
+      socket.off('storyLiked', likeHandler);
+      socket.off('storyViewed', viewHandler);
+    };
+  }, [socket]);
+
   const handleAddStory = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -30,9 +89,12 @@ const StoryBar = () => {
       setStoryGroups(prev => {
         const userGroupIdx = prev.findIndex(g => g.user._id === user._id);
         if (userGroupIdx > -1) {
-          // Add to existing group
+          // Add to existing group (immutable update)
           const updated = [...prev];
-          updated[userGroupIdx].stories.unshift(newStory);
+          updated[userGroupIdx] = {
+            ...updated[userGroupIdx],
+            stories: [newStory, ...updated[userGroupIdx].stories],
+          };
           return updated;
         } else {
           // Create new group for current user
@@ -85,7 +147,15 @@ const StoryBar = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="flex flex-col items-center shrink-0 cursor-pointer space-y-2"
-                onClick={() => setActiveStoryGroup(groupIdx)}
+                onClick={() => {
+                  setActiveStoryGroup(groupIdx);
+                  // Immediately mark as seen — remove the gradient border
+                  setStoryGroups(prev =>
+                    prev.map((g, i) =>
+                      i === groupIdx ? { ...g, hasSeen: true } : g
+                    )
+                  );
+                }}
               >
                 <div className={`relative w-16 h-16 rounded-full p-0.5 ${!hasSeen ? 'bg-linear-to-tr from-(--accent-primary) to-(--accent-secondary)' : 'bg-(--border-glass)'}`}>
                   <div className="w-full h-full rounded-full border-[3px] border-(--bg-primary) overflow-hidden">

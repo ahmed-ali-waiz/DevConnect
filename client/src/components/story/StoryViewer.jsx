@@ -7,6 +7,7 @@ import Avatar from '../ui/Avatar';
 import { createConversation, sendMessage } from '../../services/chatService';
 import { viewStory, deleteStory, likeStory, getStoryViewers, getStoryLikes } from '../../services/storyService';
 import StoryEngagementModal from './StoryEngagementModal';
+import { useSocket } from '../../context/SocketContext';
 
 const StoryViewer = ({ stories, initialIdx, onClose, onStoryDelete }) => {
   const [currentIdx, setCurrentIdx] = useState(initialIdx);
@@ -25,6 +26,7 @@ const StoryViewer = ({ stories, initialIdx, onClose, onStoryDelete }) => {
   const currentUser = useSelector((state) => state.auth.user);
   const currentStory = stories[currentIdx];
   const isOwnStory = currentUser && currentStory?.user?._id === currentUser._id;
+  const socket = useSocket();
 
   // Initialize engagement data when story changes
   useEffect(() => {
@@ -34,6 +36,27 @@ const StoryViewer = ({ stories, initialIdx, onClose, onStoryDelete }) => {
       setViewersCount(currentStory.viewersCount || 0);
     }
   }, [currentIdx, currentStory]);
+
+  // Real-time: listen for story like updates while viewing
+  useEffect(() => {
+    if (!socket || !currentStory) return;
+    const likeHandler = ({ storyId, liked, likesCount: newCount }) => {
+      if (storyId === currentStory._id) {
+        setLikesCount(newCount);
+      }
+    };
+    const viewHandler = ({ storyId, viewersCount: newCount }) => {
+      if (storyId === currentStory._id) {
+        setViewersCount(newCount);
+      }
+    };
+    socket.on('storyLiked', likeHandler);
+    socket.on('storyViewed', viewHandler);
+    return () => {
+      socket.off('storyLiked', likeHandler);
+      socket.off('storyViewed', viewHandler);
+    };
+  }, [socket, currentStory?._id]);
 
   // Pause story when modals are open
   useEffect(() => {
@@ -338,6 +361,7 @@ const StoryViewer = ({ stories, initialIdx, onClose, onStoryDelete }) => {
           onClose={() => setShowViewersModal(false)}
           title="Story Views"
           fetchData={() => getStoryViewers(currentStory._id)}
+          storyId={currentStory._id}
         />
       </div>
     </motion.div>

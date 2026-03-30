@@ -3,19 +3,37 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2, Heart } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { useSocket } from '../../context/SocketContext';
 
-const StoryEngagementModal = ({ isOpen, onClose, title, fetchData }) => {
+const StoryEngagementModal = ({ isOpen, onClose, title, fetchData, storyId }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const navigate = useNavigate();
   const currentUser = useSelector((state) => state.auth.user);
+  const socket = useSocket();
 
   useEffect(() => {
     if (isOpen) {
       loadUsers();
     }
   }, [isOpen]);
+
+  // Real-time: refresh list when new views/likes arrive
+  useEffect(() => {
+    if (!socket || !isOpen || !storyId) return;
+    const handler = (data) => {
+      if (data.storyId === storyId) {
+        loadUsers(); // Re-fetch the full list
+      }
+    };
+    socket.on('storyViewed', handler);
+    socket.on('storyLiked', handler);
+    return () => {
+      socket.off('storyViewed', handler);
+      socket.off('storyLiked', handler);
+    };
+  }, [socket, isOpen, storyId]);
 
   const loadUsers = async () => {
     setLoading(true);
