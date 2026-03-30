@@ -18,7 +18,8 @@ const AppLayout = () => {
 
   return (
     <div className="flex justify-center min-h-screen bg-(--bg-primary)">
-      <div className="flex w-full max-w-[1400px]">
+      {/* items-start: keep sidebar / main / right panel top-aligned when main is very tall (avoids huge empty space above the sidebar) */}
+      <div className="flex w-full max-w-[1400px] items-start">
         {/* Left Sidebar */}
         <Sidebar onCompose={() => setShowCompose(true)} />
 

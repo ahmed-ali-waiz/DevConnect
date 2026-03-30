@@ -7,6 +7,7 @@ import store from './store';
 import AuthInit from './components/AuthInit';
 import { ThemeProvider } from './context/ThemeContext';
 import { SocketProvider } from './context/SocketContext';
+import { CallProvider } from './context/CallContext';
 import App from './App.jsx';
 import './index.css';
 
@@ -16,11 +17,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <AuthInit>
       <ThemeProvider>
         <SocketProvider>
+          <CallProvider>
           <HelmetProvider>
             <BrowserRouter>
               <App />
             </BrowserRouter>
           </HelmetProvider>
+          </CallProvider>
         </SocketProvider>
       </ThemeProvider>
       </AuthInit>

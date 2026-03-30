@@ -8,4 +8,4 @@ export const search = async (query, type = 'all') => {
 export const getTrendingHashtags = async () => {
   const { data } = await api.get('/search/hashtags/trending');
   return data;
-};
+};I 

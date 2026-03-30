@@ -114,6 +114,16 @@ const startServer = async () => {
     await connectDB();
     connectCloudinary();
 
+    server.on("error", (err) => {
+      if (err.code === "EADDRINUSE") {
+        console.error(
+          `\n❌ Port ${PORT} is already in use. Stop the other server (e.g. another terminal running npm run dev) or set PORT in .env to a free port.\n`
+        );
+        process.exit(1);
+      }
+      throw err;
+    });
+
     server.listen(PORT, () => {
       console.log(`\n🚀 DevConnect Server running on port ${PORT}`);
       console.log(`📡 Socket.IO ready`);

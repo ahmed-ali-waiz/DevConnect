@@ -1,15 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { MailWarning, X } from 'lucide-react';
+import { MailWarning, X, Users, UserCheck, ChevronRight } from 'lucide-react';
 import StoryBar from '../components/story/StoryBar';
 import PostComposer from '../components/post/PostComposer';
 import PostCard from '../components/post/PostCard';
 import Skeleton from '../components/ui/Skeleton';
+import Avatar from '../components/ui/Avatar';
 import { getFeed, getExplorePosts, getCodeFeed } from '../services/postService';
 import { resendVerification } from '../services/authService';
+import { getFollowing } from '../services/userService';
 import { setFeed } from '../store/slices/postSlice';
 
 const HomePage = () => {
@@ -24,6 +26,8 @@ const HomePage = () => {
   const [dismissedBanner, setDismissedBanner] = useState(false);
   const [resending, setResending] = useState(false);
   const sentinelRef = useRef(null);
+  const [followingUsers, setFollowingUsers] = useState([]);
+  const [loadingFollowing, setLoadingFollowing] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -81,6 +85,17 @@ const HomePage = () => {
       setLoadingMore(false);
     }
   };
+
+  // Fetch following users when Following tab is active
+  useEffect(() => {
+    if (activeTab === 'Following' && user?._id) {
+      setLoadingFollowing(true);
+      getFollowing(user._id)
+        .then(data => setFollowingUsers(data || []))
+        .catch(() => setFollowingUsers([]))
+        .finally(() => setLoadingFollowing(false));
+    }
+  }, [activeTab, user?._id]);
 
   useEffect(() => {
     if (activeTab === 'Trending') {
@@ -187,6 +202,88 @@ const HomePage = () => {
         <StoryBar />
         
         <PostComposer />
+
+        {/* Following Users Section */}
+        <AnimatePresence>
+          {activeTab === 'Following' && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className="overflow-hidden"
+            >
+              <div className="mx-4 md:mx-0 mt-3 mb-4">
+                <div className="glass-card p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Users size={18} className="text-(--accent-primary)" />
+                      <h3 className="font-display font-bold text-base">People You Follow</h3>
+                      {followingUsers.length > 0 && (
+                        <span className="text-xs bg-(--accent-primary)/15 text-(--accent-primary) px-2 py-0.5 rounded-full font-semibold">
+                          {followingUsers.length}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {loadingFollowing ? (
+                    <div className="flex gap-3 overflow-hidden">
+                      {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="flex-shrink-0 w-[140px] bg-(--bg-glass) rounded-xl p-3 animate-pulse">
+                          <div className="w-12 h-12 rounded-full bg-(--border-glass) mx-auto mb-2" />
+                          <div className="h-3 w-16 bg-(--border-glass) rounded mx-auto mb-1" />
+                          <div className="h-2 w-12 bg-(--border-glass) rounded mx-auto" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : followingUsers.length === 0 ? (
+                    <div className="text-center py-6">
+                      <UserCheck size={32} className="mx-auto mb-2 text-(--text-muted) opacity-50" />
+                      <p className="text-sm text-(--text-muted)">You're not following anyone yet</p>
+                      <button
+                        onClick={() => setActiveTab('Trending')}
+                        className="mt-2 text-sm text-(--accent-primary) hover:underline font-semibold"
+                      >
+                        Discover developers
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-3 overflow-x-auto custom-scrollbar pb-2">
+                      {followingUsers.map((u, idx) => (
+                        <motion.div
+                          key={u._id}
+                          initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          transition={{ duration: 0.3, delay: idx * 0.05 }}
+                          onClick={() => navigate(`/profile/${u.username}`)}
+                          className="flex-shrink-0 w-[140px] bg-(--bg-glass) hover:bg-[rgba(255,255,255,0.06)] border border-(--border-glass) hover:border-(--accent-primary)/30 rounded-xl p-3 cursor-pointer transition-all duration-300 group hover:shadow-[0_0_20px_rgba(110,231,247,0.08)]"
+                        >
+                          <div className="flex flex-col items-center text-center">
+                            <Avatar src={u.profilePic} alt={u.name} size="lg" className="mb-2" />
+                            <p className="font-semibold text-sm truncate w-full group-hover:text-(--accent-primary) transition-colors">
+                              {u.name}
+                            </p>
+                            <p className="text-xs text-(--text-muted) truncate w-full">@{u.username}</p>
+                            {u.bio && (
+                              <p className="text-xs text-(--text-dim) mt-1 line-clamp-2 leading-relaxed">
+                                {u.bio}
+                              </p>
+                            )}
+                            <div className="mt-2 flex items-center gap-1 text-xs text-(--accent-primary) opacity-0 group-hover:opacity-100 transition-opacity">
+                              <span>View Profile</span>
+                              <ChevronRight size={12} />
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Feed Posts */}
         <motion.div 

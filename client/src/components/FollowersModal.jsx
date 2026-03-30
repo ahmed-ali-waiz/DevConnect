@@ -256,7 +256,7 @@ const FollowersModal = ({ isOpen, onClose, userId, initialTab = 'followers' }) =
       </div>
 
       {/* Tab Content */}
-      <div className="min-h-[300px]">
+      <div className="min-h-\[300px\]">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={activeTab}

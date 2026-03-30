@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import Avatar from '../components/ui/Avatar';
 import EmojiPickerButton from '../components/ui/EmojiPickerButton';
 import { useSocket } from '../context/SocketContext';
+import { useCall } from '../context/CallContext';
 import { getConversations, getMessages, sendMessage, deleteMessage, deleteConversation } from '../services/chatService';
 import { setConversations, setActiveChat, setMessages, addMessage, clearUnread, setOnlineUsers } from '../store/slices/chatSlice';
 import { formatDistanceToNow } from 'date-fns';
@@ -14,6 +15,7 @@ import { formatDistanceToNow } from 'date-fns';
 const ChatPage = () => {
   const dispatch = useDispatch();
   const socket = useSocket();
+  const { startCall } = useCall();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { conversations, activeChat, messages, onlineUsers } = useSelector(state => state.chat);
@@ -288,8 +290,8 @@ const ChatPage = () => {
                 </div>
               </div>
               <div className="flex space-x-2 text-(--text-muted)">
-                <button className="p-2 hover:text-white hover:bg-(--bg-glass) rounded-full transition-colors"><Phone size={18} /></button>
-                <button className="p-2 hover:text-white hover:bg-(--bg-glass) rounded-full transition-colors"><Video size={18} /></button>
+                <button onClick={() => startCall(otherParticipant, 'audio')} className="p-2 hover:text-white hover:bg-(--bg-glass) rounded-full transition-colors" title="Voice call"><Phone size={18} /></button>
+                <button onClick={() => startCall(otherParticipant, 'video')} className="p-2 hover:text-white hover:bg-(--bg-glass) rounded-full transition-colors" title="Video call"><Video size={18} /></button>
                 <div className="relative">
                   <button onClick={() => setShowConvoMenu(v => !v)} className="p-2 hover:text-white hover:bg-(--bg-glass) rounded-full transition-colors"><MoreVertical size={18} /></button>
                   {showConvoMenu && (

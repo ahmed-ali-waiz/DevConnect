@@ -18,6 +18,8 @@ import BookmarksPage from './pages/BookmarksPage';
 import SettingsPage from './pages/SettingsPage';
 import AdminPage from './pages/AdminPage';
 import PostPage from './pages/PostPage';
+import CallOverlay from './components/call/CallOverlay';
+import CallScreen from './components/call/CallScreen';
 
 function App() {
   const { token } = useSelector((state) => state.auth);
@@ -25,6 +27,9 @@ function App() {
 
   return (
     <div className="min-h-screen bg-(--bg-primary) text-(--text-primary) font-body transition-colors duration-300">
+      {/* Global call UI — renders above everything */}
+      <CallOverlay />
+      <CallScreen />
       <Toaster
         position="top-right"
         toastOptions={{

@@ -241,7 +241,7 @@ const AdminPage = () => {
                     </thead>
                     <tbody className="text-sm divide-y divide-(--border-glass)">
                       {posts.map(post => (
-                        <tr key={post._id} className="hover:bg-white/[0.02] transition-colors">
+                        <tr key={post._id} className="hover\:bg-white/[0.02] transition-colors">
                           <td className="px-5 py-3 whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               <Avatar src={post.author?.profilePic} size="xs" alt={post.author?.name} />
@@ -251,7 +251,7 @@ const AdminPage = () => {
                               </div>
                             </div>
                           </td>
-                          <td className="px-5 py-3 max-w-[260px]">
+                          <td className="px-5 py-3 max-w-\[260px]">
                             <p className="truncate text-(--text-muted) text-xs">{post.text || <em>No text</em>}</p>
                           </td>
                           <td className="px-5 py-3 text-xs text-(--text-muted)">{post.likes?.length ?? 0}</td>
@@ -295,7 +295,7 @@ const AdminPage = () => {
                 </div>
                 <div className="divide-y divide-(--border-glass)">
                   {reports.map(report => (
-                    <div key={report._id} className="p-5 hover:bg-white/[0.02] transition-colors">
+                    <div key={report._id} className="p-5 hover\:bg-white/[0.02] transition-colors">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -370,7 +370,7 @@ const UsersTable = ({ users, onToggleBan }) => (
       </thead>
       <tbody className="text-sm divide-y divide-(--border-glass)">
         {users.map(u => (
-          <tr key={u._id} className="hover:bg-white/[0.02] transition-colors">
+          <tr key={u._id} className="hover\:bg-white/[0.02] transition-colors">
             <td className="px-5 py-3 whitespace-nowrap">
               <div className="flex items-center gap-3">
                 <Avatar src={u.profilePic} size="sm" alt={u.name} />

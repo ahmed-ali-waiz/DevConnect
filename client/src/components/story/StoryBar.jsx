@@ -54,7 +54,7 @@ const StoryBar = () => {
 
   return (
     <>
-      <div className="w-full bg-(--bg-glass) border-b border-(--border-glass) py-4 backdrop-blur-md sticky top-0 md:top-0 z-30">
+      <div className="w-full bg-(--bg-primary) border-b border-(--border-glass) py-4 relative z-10">
         <div
           className="flex space-x-4 overflow-x-auto px-4 custom-scrollbar pb-2"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}

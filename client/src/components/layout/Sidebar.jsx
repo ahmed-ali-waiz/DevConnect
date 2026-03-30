@@ -53,18 +53,22 @@ const Sidebar = ({ onCompose }) => {
       initial={{ x: -260, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="hidden md:flex flex-col w-65 h-screen sticky top-0 border-r border-(--border-glass) py-6 px-4"
+      className="hidden md:flex flex-col w-65 h-screen min-h-0 sticky top-0 shrink-0 self-start border-r border-(--border-glass) pt-4 pb-6 px-4"
+      style={{ marginLeft: '-50px' }}
     >
       {/* Logo */}
-      <div className="flex items-center space-x-3 px-4 mb-8">
-        <div className="w-10 h-10 rounded-xl bg-linear-to-br from-(--accent-primary) to-(--accent-secondary) flex items-center justify-center text-(--bg-primary) font-bold text-xl font-display">
+      <div className="flex items-center space-x-4 px-4 mb-6">
+        <div 
+          className="w-28 h-14 bg-linear-to-br from-(--accent-primary) to-(--accent-secondary) flex items-center justify-center text-(--bg-primary) font-bold text-3xl font-display shadow-md"
+          style={{ marginLeft: '-20px', borderRadius: '20px' }}
+        >
           DC
         </div>
-        <span className="text-xl font-display font-bold hidden xl:block">DevConnect</span>
+        <span className="text-2xl font-display font-bold hidden xl:block">DevConnect</span>
       </div>
 
-      {/* Nav Items */}
-      <nav className="flex-1 flex flex-col space-y-2">
+      {/* Nav Items — min-h-0 + overflow so flex-1 doesn’t create odd vertical gaps; links stay at top */}
+      <nav className="flex min-h-0 flex-1 flex-col space-y-2 overflow-y-auto overflow-x-hidden custom-scrollbar">
         {navItems.map((item) => (
           <NavLink
             key={item.label}
@@ -105,12 +109,7 @@ const Sidebar = ({ onCompose }) => {
           </NavLink>
         ))}
         
-        <div className="pt-4">
-          <Button onClick={onCompose} className="w-full h-12 flex items-center justify-center space-x-2">
-            <PlusIcon size={20} className="xl:hidden" />
-            <span className="hidden xl:block">Post</span>
-          </Button>
-        </div>
+        {/* Post button removed as requested */}
       </nav>
 
       {/* User Card at bottom */}

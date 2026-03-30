@@ -136,7 +136,7 @@ const LoginPage = () => {
         ))}
 
         <div className="relative z-10 max-w-xl text-center flex flex-col items-center">
-          <div className="brand-logo w-24 h-24 mb-8 rounded-2xl bg-linear-to-br from-(--accent-primary) to-(--accent-secondary) flex items-center justify-center text-(--bg-primary) font-bold text-5xl font-display shadow-[0_0_50px_rgba(110,231,247,0.4)]">
+          <div className="brand-logo w-32 h-32 mb-8 rounded-2xl bg-linear-to-br from-(--accent-primary) to-(--accent-secondary) flex items-center justify-center text-(--bg-primary) font-bold text-6xl font-display shadow-[0_0_50px_rgba(110,231,247,0.4)]">
             DC
           </div>
           <h1 className="text-4xl lg:text-5xl font-display font-bold text-white mb-6 leading-tight">
@@ -178,7 +178,7 @@ const LoginPage = () => {
         >
           {/* Mobile Logo */}
           <div className="md:hidden flex justify-center mb-8">
-            <div className="w-12 h-12 rounded-xl bg-linear-to-br from-(--accent-primary) to-(--accent-secondary) flex items-center justify-center text-(--bg-primary) font-bold text-xl font-display shadow-lg">
+            <div className="w-16 h-16 rounded-xl bg-linear-to-br from-(--accent-primary) to-(--accent-secondary) flex items-center justify-center text-(--bg-primary) font-bold text-3xl font-display shadow-lg">
               DC
             </div>
           </div>

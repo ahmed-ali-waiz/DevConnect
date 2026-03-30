@@ -45,6 +45,7 @@ const PostCard = ({ post, defaultShowComments = false, highlightCommentId = null
   const [showComments, setShowComments] = useState(defaultShowComments);
   const [showMenu, setShowMenu] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editText, setEditText] = useState(post.text || '');
@@ -112,6 +113,10 @@ const PostCard = ({ post, defaultShowComments = false, highlightCommentId = null
 
   const handleDelete = async () => {
     setShowMenu(false);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
     setIsDeleting(true);
     try {
       await deletePost(post._id);
@@ -122,6 +127,7 @@ const PostCard = ({ post, defaultShowComments = false, highlightCommentId = null
       toast.error('Failed to delete post');
     } finally {
       setIsDeleting(false);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -191,6 +197,35 @@ const PostCard = ({ post, defaultShowComments = false, highlightCommentId = null
       exit={{ opacity: 0, y: -20 }}
       className={`glass-card p-4 md:p-5 mx-4 md:mx-0 mb-4 hover:bg-[rgba(255,255,255,0.06)] transition-colors duration-300 ${isDeleting ? 'opacity-50 pointer-events-none' : ''}`}
     >
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
+            style={{ backdropFilter: 'blur(2px)' }}
+            onClick={() => setShowDeleteConfirm(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="glass-card p-6 w-full max-w-xs z-50 shadow-2xl border border-(--border-glass)"
+              onClick={e => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-bold mb-4 text-center">Delete Post?</h3>
+              <p className="text-sm text-(--text-muted) mb-6 text-center">Are you sure you want to delete this post? This action cannot be undone.</p>
+              <div className="flex space-x-2">
+                <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 px-3 py-2 text-sm rounded-xl bg-(--bg-glass) text-(--text-muted) hover:bg-(--bg-secondary) transition-colors">Cancel</button>
+                <button onClick={confirmDelete} className="flex-1 px-3 py-2 text-sm rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors">Delete</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {post.isRepost && (
         <div className="flex items-center text-(--text-muted) text-xs mb-3 ml-12 font-semibold">
           <Repeat2 size={14} className="mr-2" />

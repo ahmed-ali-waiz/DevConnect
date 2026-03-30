@@ -24,12 +24,12 @@ const MobileNav = ({ onCompose }) => {
   return (
     <>
       {/* Mobile Topbar */}
-      <div className="md:hidden sticky top-0 z-40 bg-(--bg-primary)/80 backdrop-blur-md border-b border-(--border-glass) flex items-center justify-between px-4 h-14">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 rounded-lg bg-linear-to-br from-(--accent-primary) to-(--accent-secondary) flex items-center justify-center text-(--bg-primary) font-bold text-sm font-display">
+      <div className="md:hidden sticky top-0 z-40 bg-(--bg-primary)/80 backdrop-blur-md border-b border-(--border-glass) flex items-center justify-between px-4 h-16">
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 rounded-lg bg-linear-to-br from-(--accent-primary) to-(--accent-secondary) flex items-center justify-center text-(--bg-primary) font-bold text-lg font-display">
             DC
           </div>
-          <span className="font-display font-bold">DevConnect</span>
+          <span className="font-display font-bold text-lg">DevConnect</span>
         </div>
         {user && <Avatar src={user.profilePic} alt={user.name} size="sm" />}
       </div>

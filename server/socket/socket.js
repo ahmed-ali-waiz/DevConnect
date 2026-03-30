@@ -34,6 +34,57 @@ const initializeSocket = (io) => {
       }
     });
 
+    // ───── WebRTC Signaling ─────
+
+    // Caller sends offer to receiver
+    socket.on("callUser", ({ to, offer, callerInfo, callType }) => {
+      const receiverSocketId = onlineUsers.get(to);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("incomingCall", {
+          from: callerInfo._id,
+          offer,
+          callerInfo,
+          callType,
+        });
+        console.log(`📞 ${callerInfo.name} calling ${to} (${callType})`);
+      } else {
+        // User is offline
+        socket.emit("callFailed", { reason: "User is offline" });
+      }
+    });
+
+    // Receiver accepts the call with answer SDP
+    socket.on("acceptCall", ({ to, answer }) => {
+      const callerSocketId = onlineUsers.get(to);
+      if (callerSocketId) {
+        io.to(callerSocketId).emit("callAccepted", { answer });
+      }
+    });
+
+    // Receiver rejects the call
+    socket.on("rejectCall", ({ to }) => {
+      const callerSocketId = onlineUsers.get(to);
+      if (callerSocketId) {
+        io.to(callerSocketId).emit("callRejected");
+      }
+    });
+
+    // Either party ends the call
+    socket.on("endCall", ({ to }) => {
+      const otherSocketId = onlineUsers.get(to);
+      if (otherSocketId) {
+        io.to(otherSocketId).emit("callEnded");
+      }
+    });
+
+    // Relay ICE candidates between peers
+    socket.on("iceCandidate", ({ to, candidate }) => {
+      const otherSocketId = onlineUsers.get(to);
+      if (otherSocketId) {
+        io.to(otherSocketId).emit("iceCandidate", { candidate });
+      }
+    });
+
     // Disconnect
     socket.on("disconnect", () => {
       // Find and remove user from online map
