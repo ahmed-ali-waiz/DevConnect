@@ -1,0 +1,8 @@
+node_modules
+.env
+server/.env
+mongodb-data
+server/mongodb-data
+*.log
+dist
+dist-ssr
