@@ -6,6 +6,7 @@ console.log("DEBUG: MONGO_URI is", process.env.MONGO_URI ? "Set (Check Railway D
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
+import initializeSocket from "./socket/socket.js";
 
 const app = express();
 const server = http.createServer(app);
