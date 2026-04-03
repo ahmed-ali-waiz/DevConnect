@@ -139,7 +139,7 @@ const startServer = async () => {
       throw err;
     });
 
-    server.listen(PORT, () => {
+    server.listen(PORT, "0.0.0.0", () => {
       console.log(`\n🚀 DevConnect Server running on port ${PORT}`);
       console.log(`📡 Socket.IO ready`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}\n`);
