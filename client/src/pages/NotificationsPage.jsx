@@ -8,7 +8,7 @@ import Avatar from '../components/ui/Avatar';
 import { useSocket } from '../context/SocketContext';
 import { getNotifications, markAllRead, markAsRead } from '../services/notificationService';
 import { setNotifications, setUnreadCount, markAllReadLocal, markReadLocal, setLoading } from '../store/slices/notificationSlice';
-import { updateProfileOptimistic } from '../store/slices/authSlice';
+import { addFollowing, removeFollowing } from '../store/slices/authSlice';
 import { toggleFollow } from '../services/userService';
 import { createConversation } from '../services/chatService';
 
@@ -19,6 +19,7 @@ const TypeBadge = ({ type }) => {
     comment:      { bg: 'bg-[#0095f6]',   icon: <MessageCircle size={10} className="text-white" /> },
     reply:        { bg: 'bg-[#0095f6]',   icon: <MessageCircle size={10} className="text-white" /> },
     follow:       { bg: 'bg-[#0095f6]',   icon: <UserPlus size={10} className="text-white" /> },
+    follow_back:  { bg: 'bg-[#0095f6]',   icon: <UserPlus size={10} className="text-white" /> },
     mention:      { bg: 'bg-[#a855f7]',   icon: <span className="text-white font-bold text-[9px] leading-none">@</span> },
     repost:       { bg: 'bg-green-500',   icon: <Repeat2 size={10} className="text-white" /> },
     comment_like: { bg: 'bg-red-500',     icon: <Heart size={10} fill="white" className="text-white" /> },
@@ -42,6 +43,7 @@ const getNotificationText = (notif) => {
     case 'comment_like': return <><span className="font-semibold text-white">{name}</span> <span className="text-[#a8a8a8]">liked your comment.</span></>;
     case 'reply_like':   return <><span className="font-semibold text-white">{name}</span> <span className="text-[#a8a8a8]">liked your reply.</span></>;
     case 'follow':       return <><span className="font-semibold text-white">{name}</span> <span className="text-[#a8a8a8]">started following you.</span></>;
+    case 'follow_back':  return <><span className="font-semibold text-white">{name}</span> <span className="text-[#a8a8a8]">followed you back.</span></>;
     case 'mention':      return <><span className="font-semibold text-white">{name}</span> <span className="text-[#a8a8a8]">mentioned you in a post.</span></>;
     case 'repost':       return <><span className="font-semibold text-white">{name}</span> <span className="text-[#a8a8a8]">reposted your post.</span></>;
     default:             return <><span className="font-semibold text-white">{name}</span> <span className="text-[#a8a8a8]">interacted with you.</span></>;
@@ -102,17 +104,19 @@ const NotificationsPage = () => {
 
   const handleFollowBack = async (senderId, e) => {
     e.stopPropagation();
-    const updatedFollowing = currentUser.following
-      ? [...currentUser.following, senderId]
-      : [senderId];
-    dispatch(updateProfileOptimistic({ following: updatedFollowing }));
+    
+    // Optimistic update via Redux (syncs globally)
+    dispatch(addFollowing(senderId));
+    
     try {
       const response = await toggleFollow(senderId);
       if (!response.following) {
-        dispatch(updateProfileOptimistic({ following: currentUser.following || [] }));
+        // Revert if server says not following
+        dispatch(removeFollowing(senderId));
       }
     } catch {
-      dispatch(updateProfileOptimistic({ following: currentUser.following || [] }));
+      // Revert on error
+      dispatch(removeFollowing(senderId));
     }
   };
 
@@ -191,8 +195,9 @@ const NotificationsPage = () => {
                   {items.map((notif, i) => {
                     const senderId = notif.sender?._id || notif.user?._id;
                     const isFollowType = notif.type === 'follow';
+                    const isFollowBackType = notif.type === 'follow_back';
                     const didFollowBack = currentUser?.following?.some(
-                      id => String(id) === String(senderId)
+                      id => String(id._id || id) === String(senderId)
                     );
                     const postThumb = notif.post?.image || notif.post?.images?.[0];
                     const timeAgo = notif.createdAt
@@ -233,13 +238,13 @@ const NotificationsPage = () => {
                           </p>
                           <p className="text-[12px] text-[#a8a8a8] mt-0.5">{timeAgo}</p>
 
-                          {/* Follow-back button */}
+                          {/* Follow-back button - only show for 'follow' type, not 'follow_back' */}
                           {isFollowType && !didFollowBack && (
                             <button
                               onClick={(e) => handleFollowBack(senderId, e)}
                               className="mt-2 px-4 py-1.5 text-[13px] font-semibold bg-[#0095f6] text-white rounded-lg hover:bg-[#1aa1f7] transition-colors active:opacity-80"
                             >
-                              Follow
+                              Follow back
                             </button>
                           )}
                           {isFollowType && didFollowBack && (
@@ -250,6 +255,7 @@ const NotificationsPage = () => {
                               Following
                             </button>
                           )}
+                          {/* No button for follow_back notifications - they already followed you back */}
                         </div>
 
                         {/* Post thumbnail (right side like IG) */}

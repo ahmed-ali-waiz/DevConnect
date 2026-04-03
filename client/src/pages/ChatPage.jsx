@@ -496,14 +496,20 @@ const ChatPage = () => {
                 onClick={() => handleSelectConversation(conv)}
                 className={`flex items-center px-4 sm:px-5 py-2.5 cursor-pointer transition-colors hover:bg-[rgba(255,255,255,0.05)] ${isActive ? 'bg-[rgba(255,255,255,0.05)]' : ''}`}
               >
-                <div className="relative mr-3 shrink-0">
+                <div 
+                  className="relative mr-3 shrink-0 hover:opacity-80 transition-opacity"
+                  onClick={(e) => { e.stopPropagation(); other.username && navigate(`/profile/${other.username}`); }}
+                >
                   <Avatar src={other.profilePic} alt={other.name} size="md" className="w-[54px] h-[54px]" isOnline={false} />
                   {onlineUsers.includes(other._id) && (
                     <span className="absolute bottom-0 right-0 w-4 h-4 bg-(--accent-green) rounded-full border-[3px] border-[#000]" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0 pr-2">
-                  <h3 className={`truncate text-[15px] ${hasUnread && !isActive ? 'font-bold' : 'font-medium text-[rgba(255,255,255,0.95)]'}`}>
+                  <h3 
+                    className={`truncate text-[15px] hover:opacity-80 transition-opacity ${hasUnread && !isActive ? 'font-bold' : 'font-medium text-[rgba(255,255,255,0.95)]'}`}
+                    onClick={(e) => { e.stopPropagation(); other.username && navigate(`/profile/${other.username}`); }}
+                  >
                     {other.name}
                   </h3>
                   <div className="flex items-center text-[13px] mt-0.5">
@@ -551,7 +557,10 @@ const ChatPage = () => {
                   <ArrowLeft className="w-5 h-5 stroke-[2]" />
                 </button>
 
-                <div className="flex items-center gap-2.5 cursor-pointer min-w-0">
+                <div 
+                  className="flex items-center gap-2.5 cursor-pointer min-w-0 hover:opacity-80 transition-opacity"
+                  onClick={() => otherParticipant?.username && navigate(`/profile/${otherParticipant.username}`)}
+                >
                   <Avatar
                     src={otherParticipant?.profilePic}
                     alt={otherParticipant?.name}
@@ -632,7 +641,10 @@ const ChatPage = () => {
                   >
                     <div className="max-w-[85%] sm:max-w-[75%] flex items-end gap-2 shrink-0 min-w-0">
                       {!isMe && (
-                        <div className="w-[28px] h-[28px] shrink-0 mb-1">
+                        <div 
+                          className="w-[28px] h-[28px] shrink-0 mb-1 cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => otherParticipant?.username && navigate(`/profile/${otherParticipant.username}`)}
+                        >
                           {showAvatar && <Avatar src={otherParticipant?.profilePic} alt={otherParticipant?.name} className="w-full h-full" />}
                         </div>
                       )}

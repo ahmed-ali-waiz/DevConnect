@@ -101,6 +101,7 @@ export const login = async (req, res, next) => {
     }
 
     const token = generateToken(user._id);
+    const activeStory = await Story.findOne({ user: user._id, expiresAt: { $gt: new Date() } });
 
     res.json({
       _id: user._id,
@@ -109,6 +110,7 @@ export const login = async (req, res, next) => {
       email: user.email,
       profilePic: user.profilePic,
       role: user.role,
+      hasStory: !!activeStory,
       token,
     });
   } catch (error) {
@@ -131,7 +133,11 @@ export const getMe = async (req, res, next) => {
       .populate("followers", "name username profilePic")
       .populate("following", "name username profilePic");
 
-    res.json(user);
+    const activeStory = await Story.findOne({ user: user._id, expiresAt: { $gt: new Date() } });
+    const userData = user.toObject();
+    userData.hasStory = !!activeStory;
+
+    res.json(userData);
   } catch (error) {
     next(error);
   }

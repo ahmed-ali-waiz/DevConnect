@@ -1,8 +1,9 @@
 import { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { useSelector, useDispatch } from 'react-redux';
-import { addMessage, incrementUnread, updateLastMessage } from '../store/slices/chatSlice';
+import { addMessage, incrementUnread, updateLastMessage, setConversations } from '../store/slices/chatSlice';
 import { addNotification } from '../store/slices/notificationSlice';
+import { getConversations } from '../services/chatService';
 
 const SocketContext = createContext(null);
 
@@ -33,6 +34,19 @@ export const SocketProvider = ({ children }) => {
   const mountedRef = useRef(true);
 
   useEffect(() => () => { mountedRef.current = false; }, []);
+
+  // Load conversations on app startup for unread badge tracking
+  useEffect(() => {
+    if (user && user._id) {
+      getConversations()
+        .then((convs) => {
+          if (mountedRef.current) {
+            dispatch(setConversations(convs));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [user?._id, dispatch]);
 
   useEffect(() => {
     if (user && user._id) {

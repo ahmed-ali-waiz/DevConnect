@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Search as SearchIcon } from 'lucide-react';
@@ -7,24 +7,15 @@ import Avatar from '../ui/Avatar';
 import Button from '../ui/Button';
 import { getTrendingHashtags } from '../../services/searchService';
 import { getSuggestedUsers, toggleFollow } from '../../services/userService';
+import { addFollowing, removeFollowing } from '../../store/slices/authSlice';
 
 const RightPanel = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const authUser = useSelector(state => state.auth.user);
   const [trendingTags, setTrendingTags] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
-  const [following, setFollowing] = useState({});
-
-  // Initialize following map from authUser so already-followed users show correct state
-  useEffect(() => {
-    if (authUser?.following?.length) {
-      setFollowing(prev => {
-        const map = { ...prev };
-        authUser.following.forEach(f => { map[f._id || f] = true; });
-        return map;
-      });
-    }
-  }, [authUser?.following]);
+  const [followLoading, setFollowLoading] = useState({});
 
   useEffect(() => {
     getTrendingHashtags()
@@ -35,18 +26,42 @@ const RightPanel = () => {
       .catch(() => {});
   }, []);
 
+  // Check if user is being followed using Redux state
+  const isFollowing = (userId) => {
+    return authUser?.following?.some(f => (f._id || f) === userId);
+  };
+
   const handleFollow = async (userId) => {
-    // Optimistic update
-    const currentFollowState = following[userId];
-    setFollowing(prev => ({ ...prev, [userId]: !currentFollowState }));
+    const currentlyFollowing = isFollowing(userId);
+    
+    // Optimistic update via Redux (syncs globally)
+    if (currentlyFollowing) {
+      dispatch(removeFollowing(userId));
+    } else {
+      dispatch(addFollowing(userId));
+    }
+    
+    setFollowLoading(prev => ({ ...prev, [userId]: true }));
     
     try {
       const res = await toggleFollow(userId);
-      // Confirm with backend response
-      setFollowing(prev => ({ ...prev, [userId]: res.following }));
+      // Confirm with backend response - correct if needed
+      if (res.following !== !currentlyFollowing) {
+        if (res.following) {
+          dispatch(addFollowing(userId));
+        } else {
+          dispatch(removeFollowing(userId));
+        }
+      }
     } catch {
       // Revert on error
-      setFollowing(prev => ({ ...prev, [userId]: currentFollowState }));
+      if (currentlyFollowing) {
+        dispatch(addFollowing(userId));
+      } else {
+        dispatch(removeFollowing(userId));
+      }
+    } finally {
+      setFollowLoading(prev => ({ ...prev, [userId]: false }));
     }
   };
 
@@ -55,7 +70,7 @@ const RightPanel = () => {
       initial={{ x: 280, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: 'easeOut', delay: 0.2 }}
-      className="hidden lg:block w-\[280px] xl:w-[320px] h-dvh sticky top-0 py-6 px-4 space-y-6 overflow-y-auto custom-scrollbar"
+      className="hidden lg:block w-[280px] xl:w-[320px] h-dvh sticky top-0 py-6 px-4 space-y-6 overflow-y-auto custom-scrollbar"
     >
       {/* Search */}
       <div className="relative group">
@@ -115,19 +130,20 @@ const RightPanel = () => {
                   className="flex items-center space-x-2 truncate cursor-pointer"
                   onClick={() => navigate(`/profile/${u.username}`)}
                 >
-                  <Avatar src={u.profilePic} alt={u.name} size="sm" />
+                  <Avatar src={u.profilePic} alt={u.name} size="sm" hasStory={u.hasStory} />
                   <div className="truncate">
                     <p className="font-semibold text-sm truncate hover:underline">{u.name}</p>
                     <p className="text-xs text-(--text-muted) truncate">@{u.username}</p>
                   </div>
                 </div>
                 <Button
-                  variant={following[u._id] ? 'ghost' : 'secondary'}
+                  variant={isFollowing(u._id) ? 'ghost' : 'secondary'}
                   size="sm"
                   className="ml-2 px-3 py-1 text-xs shrink-0"
                   onClick={() => handleFollow(u._id)}
+                  isLoading={followLoading[u._id]}
                 >
-                  {following[u._id] ? 'Following' : 'Follow'}
+                  {isFollowing(u._id) ? 'Following' : 'Follow'}
                 </Button>
               </div>
             ))}

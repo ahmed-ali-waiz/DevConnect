@@ -5,8 +5,11 @@ import RightPanel from './RightPanel';
 import MobileNav from './MobileNav';
 import Modal from '../ui/Modal';
 import PostComposer from '../post/PostComposer';
+import { StoryProvider, useStoryViewer } from '../../context/StoryContext';
+import StoryViewer from '../story/StoryViewer';
 
-const AppLayout = () => {
+const AppContent = () => {
+  const { activeGroup, isOpen, closeStory } = useStoryViewer();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const [showCompose, setShowCompose] = useState(false);
@@ -43,7 +46,24 @@ const AppLayout = () => {
       <Modal isOpen={showCompose} onClose={() => setShowCompose(false)} title="Create Post" maxWidth="max-w-xl">
         <PostComposer onPostCreated={() => setShowCompose(false)} />
       </Modal>
+
+      {/* Global Story Viewer */}
+      {isOpen && activeGroup && (
+        <StoryViewer 
+          stories={activeGroup.stories} 
+          initialIdx={0} 
+          onClose={closeStory} 
+        />
+      )}
     </div>
+  );
+};
+
+const AppLayout = () => {
+  return (
+    <StoryProvider>
+      <AppContent />
+    </StoryProvider>
   );
 };
 

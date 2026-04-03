@@ -1,18 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import {
   ArrowLeft, Settings, Grid3X3, MessageSquare, Bookmark,
   Heart, Play, Image as ImageIcon, Code2, ExternalLink,
-  MessageCircle, Loader2
+  MessageCircle, Loader2, User as UserIcon
 } from 'lucide-react';
 import { format } from 'date-fns';
+import Avatar from '../components/ui/Avatar';
 import FollowersModal from '../components/FollowersModal';
 import { getUserProfile, toggleFollow } from '../services/userService';
 import { getUserPosts, getUserReplies, getUserLikedPosts, getUserMediaPosts, getUserCodePosts } from '../services/postService';
 import { createConversation } from '../services/chatService';
+import { addFollowing, removeFollowing } from '../store/slices/authSlice';
 
 const formatCount = (n) => {
   if (!n) return '0';
@@ -70,6 +72,7 @@ const PostTile = ({ post }) => {
 const ProfilePage = () => {
   const { username } = useParams();
   const { user: currentUser } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
@@ -80,7 +83,8 @@ const ProfilePage = () => {
   const [followersModal, setFollowersModal] = useState({ open: false, tab: 'followers' });
 
   const isOwnProfile = currentUser && profile && currentUser._id === profile._id;
-  const isFollowing = profile?.followers?.some((f) => String(f._id) === String(currentUser?._id));
+  // Check follow status from Redux state for global consistency
+  const isFollowing = currentUser?.following?.some((f) => String(f._id || f) === String(profile?._id));
 
   useEffect(() => {
     if (!username) return;
@@ -133,16 +137,33 @@ const ProfilePage = () => {
     if (!currentUser || !profile) return;
     setFollowLoading(true);
     const willBeFollowing = !isFollowing;
+    
+    // Optimistic update via Redux (syncs globally)
+    if (willBeFollowing) {
+      dispatch(addFollowing(profile._id));
+    } else {
+      dispatch(removeFollowing(profile._id));
+    }
+    
+    // Also update local profile state for follower count
     setProfile((p) => ({
       ...p,
       followers: willBeFollowing
         ? [...(p.followers || []), currentUser]
         : p.followers.filter((f) => String(f._id) !== String(currentUser._id)),
     }));
+    
     try {
       await toggleFollow(profile._id);
       toast.success(willBeFollowing ? 'Following' : 'Unfollowed');
     } catch {
+      // Revert Redux state
+      if (willBeFollowing) {
+        dispatch(removeFollowing(profile._id));
+      } else {
+        dispatch(addFollowing(profile._id));
+      }
+      // Revert local profile state
       setProfile((p) => ({
         ...p,
         followers: willBeFollowing
@@ -234,11 +255,14 @@ const ProfilePage = () => {
           {/* Avatar + Stats row (Instagram style) */}
           <div className="flex items-center gap-6 mb-4">
             {/* Avatar */}
-            <div className="w-20 h-20 md:w-[90px] md:h-[90px] rounded-full overflow-hidden border-2 border-[#363636] shrink-0">
-              <img
-                src={profile.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&background=262626&color=fff`}
-                alt={profile.name}
-                className="w-full h-full object-cover"
+            <div className="shrink-0 flex items-center justify-center">
+              <Avatar 
+                src={profile.profilePic} 
+                alt={profile.name} 
+                size="xl" 
+                hasStory={profile.hasStory}
+                userId={profile._id}
+                className="md:scale-125 origin-center" 
               />
             </div>
 
@@ -246,15 +270,15 @@ const ProfilePage = () => {
             <div className="flex-1 flex justify-around text-center">
               <div>
                 <p className="text-[17px] font-bold text-white">{formatCount(postCount)}</p>
-                <p className="text-[13px] text-[#a8a8a8]">posts</p>
+                <p className="text-[13px] text-accent-primary">posts</p>
               </div>
               <button onClick={() => setFollowersModal({ open: true, tab: 'followers' })}>
                 <p className="text-[17px] font-bold text-white">{formatCount(followerCount)}</p>
-                <p className="text-[13px] text-[#a8a8a8]">followers</p>
+                <p className="text-[13px] text-accent-primary">followers</p>
               </button>
               <button onClick={() => setFollowersModal({ open: true, tab: 'following' })}>
                 <p className="text-[17px] font-bold text-white">{formatCount(followingCount)}</p>
-                <p className="text-[13px] text-[#a8a8a8]">following</p>
+                <p className="text-[13px] text-accent-primary">following</p>
               </button>
             </div>
           </div>
@@ -398,12 +422,16 @@ const ProfilePage = () => {
       </div>
 
       {/* Followers/Following Modal */}
-      <FollowersModal
-        isOpen={followersModal.open}
-        onClose={() => setFollowersModal({ open: false, tab: 'followers' })}
-        userId={profile._id}
-        initialTab={followersModal.tab}
-      />
+      <AnimatePresence>
+        {followersModal.open && (
+          <FollowersModal
+            isOpen={true}
+            onClose={() => setFollowersModal((prev) => ({ ...prev, open: false }))}
+            userId={profile._id}
+            initialTab={followersModal.tab}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

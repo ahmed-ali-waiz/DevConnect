@@ -5,6 +5,11 @@ export const getStoryFeed = async () => {
   return data;
 };
 
+export const getUserStories = async (userId) => {
+  const { data } = await api.get(`/stories/user/${userId}`);
+  return data;
+};
+
 export const createStory = async (mediaFile) => {
   const formData = new FormData();
   formData.append('media', mediaFile);

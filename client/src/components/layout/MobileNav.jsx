@@ -7,12 +7,15 @@ import {
   MessageSquare as ChatIcon,
   User as UserIcon
 } from 'lucide-react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { clearAllUnread } from '../../store/slices/chatSlice';
 import Avatar from '../ui/Avatar';
 
 const MobileNav = ({ onCompose }) => {
   const { user } = useSelector(state => state.auth);
   const { unreadCount } = useSelector(state => state.notifications);
+  const { totalUnreadMessages } = useSelector(state => state.chat);
+  const dispatch = useDispatch();
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
@@ -24,7 +27,7 @@ const MobileNav = ({ onCompose }) => {
     { icon: SearchIcon, path: '/search' },
     { icon: PlusIcon, isAction: true },
     { icon: CodeIcon, path: '/code' },
-    { icon: ChatIcon, path: '/chat' },
+    { icon: ChatIcon, path: '/chat', badge: totalUnreadMessages, onClick: () => dispatch(clearAllUnread()) },
     { icon: UserIcon, path: user ? `/profile/${user.username}` : '/login', isAvatar: true },
   ];
 
@@ -39,7 +42,7 @@ const MobileNav = ({ onCompose }) => {
             </div>
             <span className="font-display font-bold text-base">DevConnect</span>
           </div>
-          {user && <Avatar src={user.profilePic} alt={user.name} size="sm" />}
+          {user && <Avatar src={user.profilePic} alt={user.name} size="sm" hasStory={user.hasStory} />}
         </div>
       )}
 
@@ -69,6 +72,7 @@ const MobileNav = ({ onCompose }) => {
                 <NavLink
                   key={idx}
                   to={item.path}
+                  onClick={item.onClick}
                   className={({ isActive }) =>
                     `relative flex items-center justify-center p-2 rounded-xl transition-all touch-target ${
                       isActive ? 'text-(--accent-primary)' : 'text-(--text-muted) hover:text-(--text-primary)'
@@ -79,7 +83,7 @@ const MobileNav = ({ onCompose }) => {
                     <>
                       {item.isAvatar && user ? (
                         <div className={`p-0.5 rounded-full ${isActive ? 'border-2 border-(--accent-primary)' : ''}`}>
-                          <Avatar src={user.profilePic} alt={user.name} size="sm" />
+                          <Avatar src={user.profilePic} alt={user.name} size="sm" hasStory={user.hasStory} />
                         </div>
                       ) : (
                         <div className="relative">

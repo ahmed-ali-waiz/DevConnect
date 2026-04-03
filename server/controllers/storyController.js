@@ -31,6 +31,41 @@ export const getStory = async (req, res, next) => {
   }
 };
 
+// @desc    Get all active stories for a specific user
+// @route   GET /api/v1/stories/user/:userId
+export const getUserStories = async (req, res, next) => {
+  try {
+    const stories = await Story.find({
+      user: req.params.userId,
+      expiresAt: { $gt: new Date() },
+    })
+      .sort({ createdAt: 1 })
+      .populate("user", "name username profilePic");
+
+    if (!stories || stories.length === 0) {
+      return res.status(404).json({ message: "No active stories found for this user" });
+    }
+
+    // Add engagement metadata to each story
+    const result = stories.map(story => {
+      const storyData = story.toObject();
+      storyData.hasViewed = story.viewers.includes(req.user._id);
+      storyData.hasLiked = story.likes.includes(req.user._id);
+      storyData.viewersCount = story.viewers.length;
+      storyData.likesCount = story.likes.length;
+      return storyData;
+    });
+
+    res.json({
+      user: stories[0].user,
+      stories: result,
+      hasSeen: result.every(s => s.hasViewed)
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Get stories feed (from following)
 // @route   GET /api/v1/stories/feed
 export const getStoryFeed = async (req, res, next) => {

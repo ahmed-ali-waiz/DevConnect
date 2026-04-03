@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -10,6 +10,7 @@ import Button from './ui/Button';
 import Skeleton from './ui/Skeleton';
 
 import { getFollowers, getFollowing, toggleFollow } from '../services/userService';
+import { addFollowing, removeFollowing } from '../store/slices/authSlice';
 
 const tabContentVariants = {
   enter: (direction) => ({
@@ -123,6 +124,7 @@ const FollowersModal = ({ isOpen, onClose, userId, initialTab = 'followers' }) =
   const [direction, setDirection] = useState(0);
 
   const { user: currentUser } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   // Reset tab when initialTab prop changes or modal opens
@@ -165,47 +167,34 @@ const FollowersModal = ({ isOpen, onClose, userId, initialTab = 'followers' }) =
   const handleToggleFollow = async (targetUserId) => {
     setFollowLoadingId(targetUserId);
     
-    // Determine current follow state
-    const isCurrentlyFollowed = currentUser.following?.includes(targetUserId);
+    // Determine current follow state from Redux
+    const isCurrentlyFollowed = currentUser?.following?.some(f => (f._id || f) === targetUserId);
     
-    // Optimistic update - update UI immediately
-    const updateList = (list) =>
-      list.map((u) => {
-        if (u._id === targetUserId) {
-          return { ...u, _followed: !isCurrentlyFollowed };
-        }
-        return u;
-      });
-
-    setFollowers((prev) => updateList(prev));
-    setFollowing((prev) => updateList(prev));
+    // Optimistic update via Redux (syncs globally)
+    if (isCurrentlyFollowed) {
+      dispatch(removeFollowing(targetUserId));
+    } else {
+      dispatch(addFollowing(targetUserId));
+    }
     
     try {
       const response = await toggleFollow(targetUserId);
       
-      // Confirm with backend response
-      const finalUpdateList = (list) =>
-        list.map((u) => {
-          if (u._id === targetUserId) {
-            return { ...u, _followed: response.following };
-          }
-          return u;
-        });
-
-      setFollowers((prev) => finalUpdateList(prev));
-      setFollowing((prev) => finalUpdateList(prev));
+      // Confirm with backend response - correct if needed
+      if (response.following !== !isCurrentlyFollowed) {
+        if (response.following) {
+          dispatch(addFollowing(targetUserId));
+        } else {
+          dispatch(removeFollowing(targetUserId));
+        }
+      }
     } catch (err) {
-      // Revert optimistic update on error
-      const revertList = (list) =>
-        list.map((u) => {
-          if (u._id === targetUserId) {
-            return { ...u, _followed: isCurrentlyFollowed };
-          }
-          return u;
-        });
-
-      setFollowers((prev) => revertList(prev));
-      setFollowing((prev) => revertList(prev));
+      // Revert on error
+      if (isCurrentlyFollowed) {
+        dispatch(addFollowing(targetUserId));
+      } else {
+        dispatch(removeFollowing(targetUserId));
+      }
       toast.error('Failed to update follow status');
     } finally {
       setFollowLoadingId(null);
@@ -218,8 +207,8 @@ const FollowersModal = ({ isOpen, onClose, userId, initialTab = 'followers' }) =
   };
 
   const isFollowed = (user) => {
-    if (user._followed !== undefined) return user._followed;
-    return currentUser?.following?.includes(user._id);
+    // Always check from Redux state for global consistency
+    return currentUser?.following?.some(f => (f._id || f) === user._id);
   };
 
   const users = activeTab === 'followers' ? followers : following;

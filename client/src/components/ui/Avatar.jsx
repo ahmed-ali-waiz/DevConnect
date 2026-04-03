@@ -1,5 +1,6 @@
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import 'react-lazy-load-image-component/src/effects/blur.css';
+import { useStoryViewer } from '../../context/StoryContext';
 
 const Avatar = ({ 
   src, 
@@ -7,8 +8,10 @@ const Avatar = ({
   size = "md", 
   isOnline = false, 
   hasStory = false,
-  className = "" 
+  className = "",
+  userId = null, 
 }) => {
+  const { playStory, loading } = useStoryViewer();
   const sizes = {
     xs: "w-6 h-6",
     sm: "w-8 h-8",
@@ -21,8 +24,19 @@ const Avatar = ({
   const ringStyles = hasStory ? "p-0.5 border-2 border-transparent bg-linear-to-tr from-(--accent-primary) to-(--accent-secondary) bg-clip-border" : "";
   const defaultAvatar = `https://ui-avatars.com/api/?name=${alt.replace(' ', '+')}&background=0D1117&color=6EE7F7`;
 
+  const handleClick = (e) => {
+    if (hasStory && userId) {
+      e.preventDefault();
+      e.stopPropagation();
+      playStory(userId);
+    }
+  };
+
   return (
-    <div className={`relative inline-block ${className}`}>
+    <div 
+      className={`relative inline-block ${className} ${hasStory ? 'cursor-pointer' : ''}`}
+      onClick={handleClick}
+    >
       <div className={`rounded-full overflow-hidden ${sizes[size]} ${ringStyles}`}>
         <LazyLoadImage
           src={src || defaultAvatar}

@@ -3,6 +3,7 @@ import {
   getStoryFeed, 
   createStory, 
   getStory,
+  getUserStories,
   viewStory, 
   deleteStory,
   likeStory,
@@ -17,6 +18,7 @@ const router = express.Router();
 router.get("/feed", protect, getStoryFeed);
 router.post("/", protect, upload.single("media"), createStory);
 router.get("/:id", protect, getStory);
+router.get("/user/:userId", protect, getUserStories);
 router.post("/:id/view", protect, viewStory);
 router.post("/:id/like", protect, likeStory);
 router.get("/:id/viewers", protect, getStoryViewers);

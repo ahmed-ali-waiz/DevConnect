@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import Story from "../models/Story.js";
 import Notification from "../models/Notification.js";
 import { uploadToCloudinary } from "../middleware/upload.js";
 
@@ -19,7 +20,11 @@ export const getUserProfile = async (req, res, next) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.json(user);
+    const userData = user.toObject();
+    const activeStory = await Story.findOne({ user: user._id, expiresAt: { $gt: new Date() } });
+    userData.hasStory = !!activeStory;
+
+    res.json(userData);
   } catch (error) {
     next(error);
   }
@@ -83,11 +88,15 @@ export const toggleFollow = async (req, res, next) => {
       currentUser.following.push(targetUser._id);
       targetUser.followers.push(currentUser._id);
 
+      // Check if target user already follows the current user (this is a follow-back)
+      const isFollowBack = targetUser.following.some((id) => id.equals(currentUser._id));
+      const notificationType = isFollowBack ? "follow_back" : "follow";
+
       // Create notification
       await Notification.create({
         recipient: targetUser._id,
         sender: currentUser._id,
-        type: "follow",
+        type: notificationType,
       });
 
       // Emit Socket.IO notification if available
@@ -95,7 +104,7 @@ export const toggleFollow = async (req, res, next) => {
       const onlineUsers = req.app.get("onlineUsers");
       if (io && onlineUsers?.get(targetUser._id.toString())) {
         io.to(onlineUsers.get(targetUser._id.toString())).emit("newNotification", {
-          type: "follow",
+          type: notificationType,
           sender: { _id: currentUser._id, name: currentUser.name, username: currentUser.username, profilePic: currentUser.profilePic },
         });
       }
@@ -152,7 +161,20 @@ export const getSuggestedUsers = async (req, res, next) => {
       .limit(5)
       .sort({ followers: -1 });
 
-    res.json(suggestedUsers);
+    const userIds = suggestedUsers.map(u => u._id);
+    const usersWithStories = await Story.distinct("user", {
+      user: { $in: userIds },
+      expiresAt: { $gt: new Date() },
+    });
+    const storyUserIds = new Set(usersWithStories.map(id => id.toString()));
+
+    const usersData = suggestedUsers.map(u => {
+      const obj = u.toObject();
+      obj.hasStory = storyUserIds.has(u._id.toString());
+      return obj;
+    });
+
+    res.json(usersData);
   } catch (error) {
     next(error);
   }

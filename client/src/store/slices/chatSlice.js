@@ -6,7 +6,8 @@ const chatSlice = createSlice({
     conversations: [],
     activeChat: null,
     messages: {},
-    onlineUsers: []
+    onlineUsers: [],
+    totalUnreadMessages: 0
   },
   reducers: {
     setActiveChat: (state, action) => {
@@ -14,6 +15,8 @@ const chatSlice = createSlice({
     },
     setConversations: (state, action) => {
       state.conversations = action.payload;
+      // Recalculate totalUnreadMessages from conversations
+      state.totalUnreadMessages = action.payload.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
     },
     setMessages: (state, action) => {
       const { conversationId, messages } = action.payload;
@@ -29,16 +32,23 @@ const chatSlice = createSlice({
     incrementUnread: (state, action) => {
       const conv = state.conversations.find(c => c._id === action.payload);
       if (conv) conv.unreadCount = (conv.unreadCount || 0) + 1;
+      // Always increment totalUnreadMessages
+      state.totalUnreadMessages = (state.totalUnreadMessages || 0) + 1;
     },
     clearUnread: (state, action) => {
       const conv = state.conversations.find(c => c._id === action.payload);
-      if (conv) conv.unreadCount = 0;
+      if (conv) {
+        // Subtract the conversation's unread count from total before clearing
+        state.totalUnreadMessages = Math.max(0, (state.totalUnreadMessages || 0) - (conv.unreadCount || 0));
+        conv.unreadCount = 0;
+      }
     },
     setOnlineUsers: (state, action) => {
       state.onlineUsers = action.payload;
     },
     clearAllUnread: (state) => {
       state.conversations.forEach(c => { c.unreadCount = 0; });
+      state.totalUnreadMessages = 0;
     },
     updateLastMessage: (state, action) => {
       const { conversationId, lastMessage } = action.payload;

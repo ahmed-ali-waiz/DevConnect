@@ -20,8 +20,7 @@ import Avatar from '../ui/Avatar';
 const Sidebar = ({ onCompose }) => {
   const { user } = useSelector(state => state.auth);
   const { unreadCount } = useSelector(state => state.notifications);
-  const { conversations } = useSelector(state => state.chat);
-  const unreadMessages = conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+  const { totalUnreadMessages } = useSelector(state => state.chat);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -29,7 +28,7 @@ const Sidebar = ({ onCompose }) => {
     { icon: HomeIcon, label: 'Home', path: '/' },
     { icon: SearchIcon, label: 'Search', path: '/search' },
     { icon: BellIcon, label: 'Notifications', path: '/notifications', badge: unreadCount },
-    { icon: ChatIcon, label: 'Messages', path: '/chat', badge: unreadMessages, onClick: () => dispatch(clearAllUnread()) },
+    { icon: ChatIcon, label: 'Messages', path: '/chat', badge: totalUnreadMessages, onClick: () => dispatch(clearAllUnread()) },
     { icon: BookmarkIcon, label: 'Bookmarks', path: '/bookmarks' },
     { icon: TrendingIcon, label: 'Trending', path: '/trending' },
     { icon: UserIcon, label: 'Profile', path: user ? `/profile/${user.username}` : '/login' },
@@ -111,7 +110,14 @@ const Sidebar = ({ onCompose }) => {
         <div className="mt-auto pt-4 border-t border-(--border-glass)">
           <button className="w-full flex items-center justify-center xl:justify-between p-2 rounded-xl hover:bg-(--bg-glass) transition-colors group">
             <div className="flex items-center overflow-hidden">
-              <Avatar src={user.profilePic} alt={user.name} size="md" className="shrink-0" />
+              <Avatar 
+                src={user.profilePic} 
+                alt={user.name} 
+                size="md" 
+                className="shrink-0" 
+                hasStory={user.hasStory}
+                userId={user._id}
+              />
               <div className="hidden xl:flex flex-col items-start truncate text-left ml-3">
                 <span className="font-semibold text-sm truncate w-full">{user.name}</span>
                 <span className="text-xs text-(--text-muted) truncate w-full">@{user.username}</span>

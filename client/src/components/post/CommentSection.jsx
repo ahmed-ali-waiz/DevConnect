@@ -85,16 +85,12 @@ const CommentItem = ({
         className="shrink-0 mt-0.5"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className={`rounded-full overflow-hidden shrink-0 ${isReply ? 'w-7 h-7' : 'w-8 h-8'}`}>
-          <img
-            src={
-              comment.author?.profilePic ||
-              `https://ui-avatars.com/api/?name=${comment.author?.name || 'U'}&background=262626&color=fff`
-            }
-            alt={comment.author?.name}
-            className="w-full h-full object-cover"
-          />
-        </div>
+        <Avatar 
+          src={comment.author?.profilePic} 
+          alt={comment.author?.name} 
+          size={isReply ? "xs" : "sm"} 
+          hasStory={comment.author?.hasStory}
+        />
       </Link>
 
       {/* Content */}
@@ -341,13 +337,7 @@ const CommentSection = ({
       {/* ── Input bar ─────────────────────────────── */}
       {user && (
         <form onSubmit={handleSubmit} className="flex items-center gap-2.5 py-2 border-t border-[#262626]">
-          <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
-            <img
-              src={user.profilePic || `https://ui-avatars.com/api/?name=${user.name || 'U'}&background=262626&color=fff`}
-              alt={user.name}
-              className="w-full h-full object-cover"
-            />
-          </div>
+          <Avatar src={user.profilePic} alt={user.name} size="sm" hasStory={user.hasStory} />
           <div className="flex-1 min-w-0">
             {replyingTo && (
               <div className="flex items-center gap-1.5 mb-1">

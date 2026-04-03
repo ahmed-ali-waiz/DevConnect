@@ -1,8 +1,42 @@
 import Post from "../models/Post.js";
 import User from "../models/User.js";
 import Comment from "../models/Comment.js";
+import Story from "../models/Story.js";
 import Notification from "../models/Notification.js";
 import { uploadToCloudinary } from "../middleware/upload.js";
+
+// Helper: check which authors have active stories and attach binary flag
+const attachStoryFlags = async (posts) => {
+  if (!posts || posts.length === 0) return posts;
+  
+  // Extract unique author IDs
+  const authorIds = [...new Set(posts.map(p => {
+    const author = p.author || p.user; // Handle both post authors and comment authors
+    return author?._id || author;
+  }))].filter(Boolean);
+
+  if (authorIds.length === 0) return posts;
+
+  // Find users with non-expired stories
+  const usersWithStories = await Story.distinct("user", {
+    user: { $in: authorIds },
+    expiresAt: { $gt: new Date() },
+  });
+
+  const storyUserIds = new Set(usersWithStories.map(id => id.toString()));
+
+  // Attach flag to each author object
+  posts.forEach(p => {
+    const author = p.author || p.user;
+    if (author && typeof author === 'object') {
+      const isPlain = typeof author.toObject === 'function';
+      const authorObj = isPlain ? author : author; // Mongoose docs are fine
+      author.hasStory = storyUserIds.has(author._id.toString());
+    }
+  });
+
+  return posts;
+};
 
 // Helper: detect @mentions in text and create notifications
 const detectMentions = async (text, senderId, postId, req) => {
@@ -87,6 +121,7 @@ export const createPost = async (req, res, next) => {
     });
 
     await post.populate("author", "name username profilePic isVerified");
+    await attachStoryFlags([post]);
 
     // Detect @mentions
     await detectMentions(text, req.user._id, post._id, req);
@@ -123,6 +158,8 @@ export const getFeed = async (req, res, next) => {
 
     const total = await Post.countDocuments({ author: { $in: feedUsers } });
 
+    await attachStoryFlags(posts);
+
     res.json({
       posts,
       page,
@@ -154,6 +191,7 @@ export const getExplorePosts = async (req, res, next) => {
     ]);
 
     await Post.populate(posts, { path: "author", select: "name username profilePic isVerified" });
+    await attachStoryFlags(posts);
 
     const total = await Post.countDocuments();
 
@@ -181,6 +219,8 @@ export const getPost = async (req, res, next) => {
       });
 
     if (!post) return res.status(404).json({ message: "Post not found" });
+
+    await attachStoryFlags([post]);
 
     res.json(post);
   } catch (error) {
@@ -335,6 +375,8 @@ export const getUserPosts = async (req, res, next) => {
 
     const total = await Post.countDocuments({ author: req.params.userId });
 
+    await attachStoryFlags(posts);
+
     res.json({
       posts,
       page,
@@ -362,6 +404,7 @@ export const editPost = async (req, res, next) => {
     post.markModified("text");
     await post.save();
     await post.populate("author", "name username profilePic isVerified");
+    await attachStoryFlags([post]);
 
     if (text) await detectMentions(text, req.user._id, post._id, req);
 
@@ -388,6 +431,8 @@ export const getUserReplies = async (req, res, next) => {
 
     const total = await Comment.countDocuments({ author: req.params.userId });
 
+    await attachStoryFlags(comments);
+
     res.json({ posts: comments, page, totalPages: Math.ceil(total / limit), hasMore: page * limit < total });
   } catch (error) {
     next(error);
@@ -409,6 +454,8 @@ export const getUserLikedPosts = async (req, res, next) => {
       .populate("author", "name username profilePic isVerified");
 
     const total = await Post.countDocuments({ likes: req.params.userId });
+
+    await attachStoryFlags(posts);
 
     res.json({ posts, page, totalPages: Math.ceil(total / limit), hasMore: page * limit < total });
   } catch (error) {
@@ -438,6 +485,8 @@ export const getUserMediaPosts = async (req, res, next) => {
       $or: [{ image: { $ne: "" } }, { images: { $ne: [] } }, { video: { $ne: "" } }],
     });
 
+    await attachStoryFlags(posts);
+
     res.json({ posts, page, totalPages: Math.ceil(total / limit), hasMore: page * limit < total });
   } catch (error) {
     next(error);
@@ -466,6 +515,8 @@ export const getUserCodePosts = async (req, res, next) => {
       "codeSnippet.code": { $ne: "" },
     });
 
+    await attachStoryFlags(posts);
+
     res.json({ posts, page, totalPages: Math.ceil(total / limit), hasMore: page * limit < total });
   } catch (error) {
     next(error);
@@ -491,6 +542,8 @@ export const getCodeFeed = async (req, res, next) => {
     const total = await Post.countDocuments({
       "codeSnippet.code": { $ne: "" },
     });
+
+    await attachStoryFlags(posts);
 
     res.json({
       posts,

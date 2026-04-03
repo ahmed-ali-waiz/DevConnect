@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X as CloseIcon } from 'lucide-react';
 
 /* Mobile = slide-up bottom sheet, Desktop = centered modal */
@@ -22,44 +23,62 @@ const overlayVariants = {
 };
 
 const Modal = ({ isOpen, onClose, title, children, maxWidth = 'max-w-lg' }) => {
-  // Prevent body scroll when modal is open
+  // Keep a stable reference to onClose to avoid event listener issues
+  const onCloseRef = useRef(onClose);
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => { document.body.style.overflow = 'unset'; };
-  }, [isOpen]);
-
-  // Close on Escape key
-  useEffect(() => {
-    const handleEscape = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
+    onCloseRef.current = onClose;
   }, [onClose]);
 
-  return (
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    // Save original styles
+    const originalOverflow = document.body.style.overflow;
+    
+    // Use overflow: hidden to prevent background scrolling
+    document.body.style.overflow = 'hidden';
+    
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
+
+  // Close on Escape key - only listen when modal is open
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleEscape = (e) => { if (e.key === 'Escape') onCloseRef.current?.(); };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [isOpen]);
+
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
-        <>
+        <motion.div
+          key="modal-root"
+          className="fixed inset-0"
+          style={{ zIndex: 9999 }}
+        >
           {/* Backdrop */}
           <motion.div
+            key="modal-backdrop"
             variants={overlayVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={onClose}
           />
 
           {/* Mobile bottom sheet */}
           <motion.div
+            key="modal-mobile"
             variants={mobileVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            className={`md:hidden fixed inset-x-0 bottom-0 z-50 glass-card rounded-t-2xl rounded-b-none w-full max-h-[92dvh] flex flex-col shadow-2xl`}
+            className="md:hidden absolute inset-x-0 bottom-0 glass-card rounded-t-2xl rounded-b-none w-full max-h-[92dvh] flex flex-col shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Drag handle */}
@@ -84,13 +103,16 @@ const Modal = ({ isOpen, onClose, title, children, maxWidth = 'max-w-lg' }) => {
           </motion.div>
 
           {/* Desktop centered modal */}
-          <div className="hidden md:flex fixed inset-0 z-50 items-center justify-center p-4 sm:p-6">
-            <motion.div
-              variants={desktopVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className={`glass-card relative w-full ${maxWidth} max-h-[90dvh] flex flex-col z-10 shadow-2xl`}
+          <motion.div
+            key="modal-desktop"
+            variants={desktopVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="hidden md:flex absolute inset-0 items-center justify-center p-4 sm:p-6 pointer-events-none"
+          >
+            <div
+              className={`glass-card relative w-full ${maxWidth} max-h-[90dvh] flex flex-col shadow-2xl pointer-events-auto`}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
@@ -108,12 +130,15 @@ const Modal = ({ isOpen, onClose, title, children, maxWidth = 'max-w-lg' }) => {
               <div className="p-5 overflow-y-auto custom-scrollbar">
                 {children}
               </div>
-            </motion.div>
-          </div>
-        </>
+            </div>
+          </motion.div>
+        </motion.div>
       )}
     </AnimatePresence>
   );
+
+  // Use portal to render modal outside parent DOM hierarchy
+  return createPortal(modalContent, document.body);
 };
 
 export default Modal;

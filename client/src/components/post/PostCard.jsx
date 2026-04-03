@@ -256,15 +256,13 @@ const PostCard = ({ post, defaultShowComments = false, highlightCommentId = null
         <div className="flex items-center gap-2.5">
           {/* Avatar with story ring */}
           <Link to={`/profile/${post.author.username}`} className="shrink-0">
-            <div className="w-9 h-9 rounded-full p-[2px] bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7]">
-              <div className="w-full h-full rounded-full border-[2px] border-black overflow-hidden">
-                <img
-                  src={post.author.profilePic || `https://ui-avatars.com/api/?name=${post.author.name || 'U'}&background=0D1117&color=fff`}
-                  alt={post.author.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
+            <Avatar 
+              src={post.author?.profilePic} 
+              alt={post.author?.name} 
+              size="md" 
+              hasStory={post.author?.hasStory}
+              userId={post.author?._id}
+            />
           </Link>
 
           {/* Name + subtitle */}

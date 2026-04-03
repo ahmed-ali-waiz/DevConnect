@@ -29,9 +29,26 @@ const authSlice = createSlice({
       if (state.user) {
         Object.assign(state.user, action.payload);
       }
+    },
+    addFollowing: (state, action) => {
+      if (state.user) {
+        const userId = action.payload;
+        if (!state.user.following) {
+          state.user.following = [];
+        }
+        if (!state.user.following.some(f => (f._id || f) === userId)) {
+          state.user.following.push(userId);
+        }
+      }
+    },
+    removeFollowing: (state, action) => {
+      if (state.user && state.user.following) {
+        const userId = action.payload;
+        state.user.following = state.user.following.filter(f => (f._id || f) !== userId);
+      }
     }
   }
 });
 
-export const { setUser, setToken, logout, updateProfileOptimistic } = authSlice.actions;
+export const { setUser, setToken, logout, updateProfileOptimistic, addFollowing, removeFollowing } = authSlice.actions;
 export default authSlice.reducer;
