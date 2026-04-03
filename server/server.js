@@ -13,6 +13,25 @@ import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 import initializeSocket from "./socket/socket.js";
 
+// Config
+import connectDB from "./config/db.js";
+import connectCloudinary from "./config/cloudinary.js";
+
+// Middleware
+import errorHandler from "./middleware/errorHandler.js";
+
+// Routes
+import authRoutes from "./routes/auth.js";
+import userRoutes from "./routes/users.js";
+import postRoutes from "./routes/posts.js";
+import commentRoutes from "./routes/comments.js";
+import chatRoutes from "./routes/chat.js";
+import notificationRoutes from "./routes/notifications.js";
+import storyRoutes from "./routes/stories.js";
+import searchRoutes from "./routes/search.js";
+import adminRoutes from "./routes/admin.js";
+import reportRoutes from "./routes/reports.js";
+
 const app = express();
 const server = http.createServer(app);
 
