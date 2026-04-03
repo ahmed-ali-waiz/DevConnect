@@ -1,6 +1,0 @@
-{
-  "project": {
-    "language": "node",
-    "start": "cd server && npm install && npm start"
-  }
-}

@@ -1,0 +1,11 @@
+{
+  "name": "social-media-app",
+  "version": "1.0.0",
+  "description": "Root package.json for Railway deployment",
+  "scripts": {
+    "start": "bash start.sh"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
