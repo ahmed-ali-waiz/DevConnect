@@ -1,11 +1,14 @@
 #!/bin/bash
+set -e # Exit immediately if a command exits with a non-zero status
 
-# Navigate to server and start backend
-cd server
+# 1. Navigate to client, install dependencies, and build frontend for production
+echo "Building the frontend Client..."
+cd client
 npm install
-npm start &  # '&' runs it in background
+npm run build
 
-# Navigate to client and start frontend
-cd ../client
+# 2. Navigate to server, install dependencies, and start the node backend
+echo "Starting the backend Server..."
+cd ../server
 npm install
-npm run dev
+node server.js

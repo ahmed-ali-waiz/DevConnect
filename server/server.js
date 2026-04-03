@@ -98,9 +98,24 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// 404 handler
-app.use((req, res) => {
+// 404 handler for API routes
+app.use("/api/*", (req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });
+});
+
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Serve static assets if in production or by default fallback
+const clientBuildPath = path.join(__dirname, "../client/dist");
+app.use(express.static(clientBuildPath));
+
+// For any other routes, send the React app (Client-side routing)
+app.get("*", (req, res) => {
+  res.sendFile(path.join(clientBuildPath, "index.html"));
 });
 
 // Global error handler
