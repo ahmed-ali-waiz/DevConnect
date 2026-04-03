@@ -4,6 +4,8 @@ dotenv.config();
 console.log("DEBUG: MONGO_URI is", process.env.MONGO_URI ? "Set (Check Railway Dashboard for value)" : "UNDEFINED ❌");
 
 import express from "express";
+import http from "http";
+import { Server } from "socket.io";
 
 const app = express();
 const server = http.createServer(app);
