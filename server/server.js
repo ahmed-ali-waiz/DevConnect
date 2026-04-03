@@ -1,36 +1,9 @@
-import express from "express";
-import http from "http";
-import { Server } from "socket.io";
 import dotenv from "dotenv";
-import cors from "cors";
-import cookieParser from "cookie-parser";
-import helmet from "helmet";
-import morgan from "morgan";
-import rateLimit from "express-rate-limit";
-
-// Config
-import connectDB from "./config/db.js";
-import connectCloudinary from "./config/cloudinary.js";
-
-// Middleware
-import errorHandler from "./middleware/errorHandler.js";
-
-// Routes
-import authRoutes from "./routes/auth.js";
-import userRoutes from "./routes/users.js";
-import postRoutes from "./routes/posts.js";
-import commentRoutes from "./routes/comments.js";
-import chatRoutes from "./routes/chat.js";
-import notificationRoutes from "./routes/notifications.js";
-import storyRoutes from "./routes/stories.js";
-import searchRoutes from "./routes/search.js";
-import adminRoutes from "./routes/admin.js";
-import reportRoutes from "./routes/reports.js";
-
-// Socket.IO
-import initializeSocket from "./socket/socket.js";
-
 dotenv.config();
+
+console.log("DEBUG: MONGO_URI is", process.env.MONGO_URI ? "Set (Check Railway Dashboard for value)" : "UNDEFINED ❌");
+
+import express from "express";
 
 const app = express();
 const server = http.createServer(app);
