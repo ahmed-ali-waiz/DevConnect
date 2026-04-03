@@ -6,6 +6,11 @@ console.log("DEBUG: MONGO_URI is", process.env.MONGO_URI ? "Set (Check Railway D
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
+import helmet from "helmet";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import morgan from "morgan";
+import rateLimit from "express-rate-limit";
 import initializeSocket from "./socket/socket.js";
 
 const app = express();
