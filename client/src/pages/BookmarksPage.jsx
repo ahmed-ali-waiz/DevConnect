@@ -47,7 +47,7 @@ const BookmarksPage = () => {
         </div>
       </div>
 
-      <div className="flex-1 p-4 pb-20 sm:p-6 min-h-[50vh]">
+      <div className="flex-1 p-4 pb-24 sm:p-6 min-h-[50vh]" style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}>
         {loading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (

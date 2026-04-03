@@ -1,50 +1,87 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, MessageSquare, Repeat2, UserPlus, Bell } from 'lucide-react';
+import { Heart, MessageCircle, UserPlus, Repeat2, Bell, ArrowLeft } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { formatDistanceToNow } from 'date-fns';
 import Avatar from '../components/ui/Avatar';
-import Button from '../components/ui/Button';
 import { useSocket } from '../context/SocketContext';
-import { getNotifications, markAllRead } from '../services/notificationService';
-import { setNotifications, setUnreadCount, markAllReadLocal, setLoading } from '../store/slices/notificationSlice';
+import { getNotifications, markAllRead, markAsRead } from '../services/notificationService';
+import { setNotifications, setUnreadCount, markAllReadLocal, markReadLocal, setLoading } from '../store/slices/notificationSlice';
 import { updateProfileOptimistic } from '../store/slices/authSlice';
 import { toggleFollow } from '../services/userService';
 import { createConversation } from '../services/chatService';
-import { markAsRead } from '../services/notificationService';
 
-const getIcon = (type) => {
-  switch (type) {
-    case 'like': return <Heart fill="currentColor" size={16} className="text-red-500" />;
-    case 'comment': return <MessageSquare size={16} className="text-[#38bdf8]" />;
-    case 'follow': return <UserPlus size={16} className="text-(--accent-secondary)" />;
-    case 'mention': return <span className="text-(--accent-primary) font-bold text-lg leading-none">@</span>;
-    case 'repost': return <Repeat2 size={16} className="text-(--accent-green)" />;
-    default: return <Bell size={16} />;
+// Small colored icon badge that floats over avatar (like Instagram)
+const TypeBadge = ({ type }) => {
+  const cfg = {
+    like:         { bg: 'bg-red-500',     icon: <Heart size={10} fill="white" className="text-white" /> },
+    comment:      { bg: 'bg-[#0095f6]',   icon: <MessageCircle size={10} className="text-white" /> },
+    reply:        { bg: 'bg-[#0095f6]',   icon: <MessageCircle size={10} className="text-white" /> },
+    follow:       { bg: 'bg-[#0095f6]',   icon: <UserPlus size={10} className="text-white" /> },
+    mention:      { bg: 'bg-[#a855f7]',   icon: <span className="text-white font-bold text-[9px] leading-none">@</span> },
+    repost:       { bg: 'bg-green-500',   icon: <Repeat2 size={10} className="text-white" /> },
+    comment_like: { bg: 'bg-red-500',     icon: <Heart size={10} fill="white" className="text-white" /> },
+    reply_like:   { bg: 'bg-red-500',     icon: <Heart size={10} fill="white" className="text-white" /> },
+  };
+  const c = cfg[type] || { bg: 'bg-[#555]', icon: <Bell size={10} className="text-white" /> };
+  return (
+    <div className={`absolute -bottom-0.5 -right-0.5 w-[18px] h-[18px] ${c.bg} rounded-full flex items-center justify-center border-[2px] border-black`}>
+      {c.icon}
+    </div>
+  );
+};
+
+const getNotificationText = (notif) => {
+  const name = notif.sender?.username || notif.user?.username || 'Someone';
+  const excerpt = notif.post?.text ? ` "${notif.post.text.slice(0, 40)}${notif.post.text.length > 40 ? '...' : ''}"` : '';
+  switch (notif.type) {
+    case 'like':         return <><span className="font-semibold text-white">{name}</span> <span className="text-[#a8a8a8]">liked your post.{excerpt}</span></>;
+    case 'comment':      return <><span className="font-semibold text-white">{name}</span> <span className="text-[#a8a8a8]">commented:</span> <span className="text-white">{notif.comment?.text?.slice(0, 50) || ''}</span></>;
+    case 'reply':        return <><span className="font-semibold text-white">{name}</span> <span className="text-[#a8a8a8]">replied to your comment.</span></>;
+    case 'comment_like': return <><span className="font-semibold text-white">{name}</span> <span className="text-[#a8a8a8]">liked your comment.</span></>;
+    case 'reply_like':   return <><span className="font-semibold text-white">{name}</span> <span className="text-[#a8a8a8]">liked your reply.</span></>;
+    case 'follow':       return <><span className="font-semibold text-white">{name}</span> <span className="text-[#a8a8a8]">started following you.</span></>;
+    case 'mention':      return <><span className="font-semibold text-white">{name}</span> <span className="text-[#a8a8a8]">mentioned you in a post.</span></>;
+    case 'repost':       return <><span className="font-semibold text-white">{name}</span> <span className="text-[#a8a8a8]">reposted your post.</span></>;
+    default:             return <><span className="font-semibold text-white">{name}</span> <span className="text-[#a8a8a8]">interacted with you.</span></>;
   }
 };
 
-const getNotificationText = (type) => {
-  switch (type) {
-    case 'like': return 'liked your post';
-    case 'comment': return 'commented on your post';
-    case 'reply': return 'replied to your comment';
-    case 'comment_like': return 'liked your comment';
-    case 'reply_like': return 'liked your reply';
-    case 'follow': return 'started following you';
-    case 'mention': return 'mentioned you in a post';
-    case 'repost': return 'reposted your post';
-    default: return 'interacted with you';
-  }
+// Group notifications by relative time bucket
+const groupByTime = (notifications) => {
+  const now = Date.now();
+  const groups = {};
+  const order = [];
+
+  const getGroup = (createdAt) => {
+    const diff = now - new Date(createdAt).getTime();
+    const hours = diff / (1000 * 60 * 60);
+    if (hours < 1) return 'Just now';
+    if (hours < 24) return 'Today';
+    if (hours < 48) return 'Yesterday';
+    if (hours < 24 * 7) return 'Last 7 days';
+    if (hours < 24 * 30) return 'Last 30 days';
+    return 'Older';
+  };
+
+  notifications.forEach(n => {
+    const label = getGroup(n.createdAt);
+    if (!groups[label]) {
+      groups[label] = [];
+      order.push(label);
+    }
+    groups[label].push(n);
+  });
+
+  return order.map(label => ({ label, items: groups[label] }));
 };
+
 const NotificationsPage = () => {
-  const [activeTab, setActiveTab] = useState('All');
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const socket = useSocket();
   const { notifications, unreadCount, loading } = useSelector(state => state.notifications);
   const currentUser = useSelector(state => state.auth.user);
-  const tabs = ['All', 'Mentions', 'Follows'];
 
   useEffect(() => {
     dispatch(setLoading(true));
@@ -60,186 +97,178 @@ const NotificationsPage = () => {
 
   const handleMarkAllRead = async () => {
     dispatch(markAllReadLocal());
-    try {
-      await markAllRead();
-    } catch {}
+    try { await markAllRead(); } catch {}
   };
 
-  const handleFollowBack = async (senderId) => {
-    // Optimistic update
+  const handleFollowBack = async (senderId, e) => {
+    e.stopPropagation();
     const updatedFollowing = currentUser.following
       ? [...currentUser.following, senderId]
       : [senderId];
     dispatch(updateProfileOptimistic({ following: updatedFollowing }));
-    
     try {
       const response = await toggleFollow(senderId);
-      // Confirm with backend
       if (!response.following) {
-        // Revert if backend says not following
-        dispatch(updateProfileOptimistic({ 
-          following: currentUser.following || [] 
-        }));
+        dispatch(updateProfileOptimistic({ following: currentUser.following || [] }));
       }
     } catch {
-      // Revert on error
-      dispatch(updateProfileOptimistic({ 
-        following: currentUser.following || [] 
-      }));
+      dispatch(updateProfileOptimistic({ following: currentUser.following || [] }));
     }
   };
 
-  const handleMessage = async (senderId) => {
-    try {
-      const conversation = await createConversation(senderId);
-      navigate(`/chat?conversationId=${conversation._id}`);
-    } catch {}
-  };
-
-  const filtered = notifications.filter(n => {
-    if (activeTab === 'Mentions') return n.type === 'mention';
-    if (activeTab === 'Follows') return n.type === 'follow';
-    return true;
-  });
-
   const handleOpen = async (notif) => {
     if (notif._id && !notif.read) {
+      dispatch(markReadLocal(notif._id));
       try { await markAsRead(notif._id); } catch {}
     }
     if (notif.post?._id) {
       const commentId = notif.comment?._id;
       navigate(`/post/${notif.post._id}${commentId ? `?commentId=${commentId}` : ''}`);
+    } else if (notif.sender?.username) {
+      navigate(`/profile/${notif.sender.username}`);
     }
   };
 
+  const grouped = groupByTime(notifications);
+
   return (
-    <div className="w-full flex-1 flex flex-col pt-14 md:pt-0">
+    <div className="w-full flex-1 flex flex-col bg-black min-h-dvh">
 
-      <div className="sticky top-14 md:top-0 z-30 bg-(--bg-primary)/80 backdrop-blur-md border-b border-(--border-glass) py-4 px-4 sm:px-6 flex items-center justify-between">
-        <h2 className="text-xl font-display font-bold">
-          Notifications
-          {unreadCount > 0 && (
-            <span className="ml-2 text-xs font-bold bg-red-500 text-white rounded-full px-1.5 py-0.5">{unreadCount}</span>
-          )}
-        </h2>
-        {unreadCount > 0 && (
-          <button
-            onClick={handleMarkAllRead}
-            className="text-xs font-semibold text-(--accent-primary) hover:text-white transition-colors bg-(--bg-glass) px-3 py-1.5 rounded-full border border-(--border-glass)"
-          >
-            Mark all read
+      {/* ── HEADER ── */}
+      <div className="sticky top-0 z-30 bg-black border-b border-[#262626]">
+        {/* Mobile header */}
+        <div className="flex items-center justify-between px-4 h-14">
+          <button onClick={() => navigate(-1)} className="md:hidden text-white hover:opacity-70 transition-opacity">
+            <ArrowLeft size={24} />
           </button>
-        )}
+          <h1 className="text-[17px] font-semibold text-white md:text-xl">Notifications</h1>
+          {unreadCount > 0 ? (
+            <button
+              onClick={handleMarkAllRead}
+              className="text-[13px] font-semibold text-[#0095f6] hover:opacity-70 transition-opacity"
+            >
+              Mark all read
+            </button>
+          ) : <div className="w-16" />}
+        </div>
       </div>
 
-      <div className="flex border-b border-(--border-glass) px-4">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className="flex-1 py-4 text-sm font-semibold relative transition-colors group"
-          >
-            <span className={activeTab === tab ? 'text-(--text-primary)' : 'text-(--text-muted) group-hover:text-(--text-primary)'}>
-              {tab}
-            </span>
-            {activeTab === tab && (
-              <motion.div
-                layoutId="notifTabIndicator"
-                className="absolute bottom-0 left-1/4 right-1/4 h-1 bg-linear-to-r from-(--accent-primary) to-(--accent-secondary) rounded-t-full shadow-(--shadow-glow)"
-              />
-            )}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex-1 overflow-hidden pb-20 sm:pb-6">
+      {/* ── CONTENT ── */}
+      <div className="flex-1 overflow-y-auto">
         {loading ? (
-          <div className="flex items-center justify-center py-16 text-(--text-muted)">
-            <div className="w-6 h-6 border-2 border-(--accent-primary) border-t-transparent rounded-full animate-spin" />
+          // Skeleton
+          <div>
+            {[1, 2, 3, 4, 5].map(i => (
+              <div key={i} className="flex items-center gap-3 px-4 py-3 animate-pulse">
+                <div className="w-11 h-11 rounded-full bg-[#262626] shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-2.5 w-48 bg-[#262626] rounded" />
+                  <div className="h-2 w-24 bg-[#262626] rounded" />
+                </div>
+                <div className="w-10 h-10 rounded-lg bg-[#262626] shrink-0" />
+              </div>
+            ))}
           </div>
-        ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-(--text-muted)">
-            <Bell size={48} className="opacity-20 mb-4" />
-            <p>No notifications yet</p>
+        ) : notifications.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
+            <div className="w-16 h-16 rounded-full border-2 border-[#363636] flex items-center justify-center">
+              <Bell size={28} className="text-[#a8a8a8]" />
+            </div>
+            <p className="text-white font-semibold text-base">Activity On Your Posts</p>
+            <p className="text-[#a8a8a8] text-sm max-w-[220px] leading-relaxed">
+              When someone likes or comments on one of your posts, you'll see it here.
+            </p>
           </div>
         ) : (
-          <div className="h-full flex">
-            {/* List */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar divide-y divide-(--border-glass)">
-              <AnimatePresence>
-                {filtered.map((notif, i) => (
-                  <motion.div
-                    key={notif._id || notif.id}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.04 }}
-                    onClick={() => handleOpen(notif)}
-                    className={`flex px-4 sm:px-6 py-4 cursor-pointer hover:bg-[rgba(255,255,255,0.02)] transition-colors relative ${
-                      !notif.read ? 'bg-[rgba(110,231,247,0.03)]' : ''
-                    }`}
-                  >
-                  {!notif.read && (
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-linear-to-b from-(--accent-primary) to-(--accent-secondary) shadow-[1px_0_10px_rgba(110,231,247,0.5)]" />
-                  )}
+          <div className="pb-28 md:pb-6">
+            {grouped.map(({ label, items }) => (
+              <div key={label}>
+                {/* Group label */}
+                <p className="px-4 pt-5 pb-2 text-[15px] font-semibold text-white">{label}</p>
 
-                  <div className="w-8 flex justify-end mr-3 mt-1">
-                    {getIcon(notif.type)}
-                  </div>
+                {/* Items */}
+                <AnimatePresence>
+                  {items.map((notif, i) => {
+                    const senderId = notif.sender?._id || notif.user?._id;
+                    const isFollowType = notif.type === 'follow';
+                    const didFollowBack = currentUser?.following?.some(
+                      id => String(id) === String(senderId)
+                    );
+                    const postThumb = notif.post?.image || notif.post?.images?.[0];
+                    const timeAgo = notif.createdAt
+                      ? formatDistanceToNow(new Date(notif.createdAt), { addSuffix: false })
+                      : '';
 
-                  <div className="flex-1">
-                    <Avatar
-                      src={notif.sender?.profilePic || notif.user?.profilePic}
-                      alt={notif.sender?.name || notif.user?.name || 'User'}
-                      size="md"
-                      className="mb-2"
-                    />
-                    <p className="text-[15px] leading-snug">
-                      <span className="font-bold">{notif.sender?.name || notif.user?.name}</span>{' '}
-                      <span className="text-(--text-muted)">{getNotificationText(notif.type)}</span>
-                    </p>
-                    <p className="text-xs text-(--text-muted) mt-1">
-                      {notif.createdAt ? new Date(notif.createdAt).toLocaleDateString() : ''}
-                    </p>
+                    return (
+                      <motion.div
+                        key={notif._id || `${notif.type}-${i}`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: i * 0.03 }}
+                        onClick={() => handleOpen(notif)}
+                        className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors active:bg-[#1a1a1a] ${
+                          !notif.read ? 'bg-[#0a1628]' : 'hover:bg-[#0a0a0a]'
+                        }`}
+                      >
+                        {/* Avatar + badge */}
+                        <div className="relative shrink-0">
+                          <div className="w-11 h-11 rounded-full overflow-hidden">
+                            <img
+                              src={
+                                notif.sender?.profilePic ||
+                                notif.user?.profilePic ||
+                                `https://ui-avatars.com/api/?name=${notif.sender?.name || 'U'}&background=262626&color=fff`
+                              }
+                              alt={notif.sender?.name || 'User'}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <TypeBadge type={notif.type} />
+                        </div>
 
-                    {notif.type === 'follow' && (() => {
-                      const senderId = notif.sender?._id || notif.user?._id;
-                      const didFollowBack = currentUser?.following?.some(
-                        id => String(id) === String(senderId)
-                      );
-                      return (
-                        <div className="mt-3 flex items-center gap-2">
-                          {didFollowBack ? (
-                            <>
-                              <Button size="sm" variant="secondary" className="px-4 py-1.5 text-xs opacity-60 cursor-default" disabled>
-                                Following
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="primary"
-                                className="px-4 py-1.5 text-xs"
-                                onClick={(e) => { e.stopPropagation(); handleMessage(senderId); }}
-                              >
-                                Message
-                              </Button>
-                            </>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              className="px-4 py-1.5 text-xs"
-                              onClick={(e) => { e.stopPropagation(); handleFollowBack(senderId); }}
+                        {/* Text */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] leading-snug line-clamp-2">
+                            {getNotificationText(notif)}
+                          </p>
+                          <p className="text-[12px] text-[#a8a8a8] mt-0.5">{timeAgo}</p>
+
+                          {/* Follow-back button */}
+                          {isFollowType && !didFollowBack && (
+                            <button
+                              onClick={(e) => handleFollowBack(senderId, e)}
+                              className="mt-2 px-4 py-1.5 text-[13px] font-semibold bg-[#0095f6] text-white rounded-lg hover:bg-[#1aa1f7] transition-colors active:opacity-80"
                             >
-                              Follow Back
-                            </Button>
+                              Follow
+                            </button>
+                          )}
+                          {isFollowType && didFollowBack && (
+                            <button
+                              disabled
+                              className="mt-2 px-4 py-1.5 text-[13px] font-semibold bg-[#262626] text-white rounded-lg border border-[#363636] opacity-60 cursor-default"
+                            >
+                              Following
+                            </button>
                           )}
                         </div>
-                      );
-                    })()}
-                  </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
+
+                        {/* Post thumbnail (right side like IG) */}
+                        {postThumb ? (
+                          <div className="w-11 h-11 rounded-lg overflow-hidden shrink-0 border border-[#262626]">
+                            <img src={postThumb} alt="" className="w-full h-full object-cover" />
+                          </div>
+                        ) : (
+                          /* Unread dot indicator if no thumbnail */
+                          !notif.read && (
+                            <div className="w-2 h-2 rounded-full bg-[#0095f6] shrink-0" />
+                          )
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
+            ))}
           </div>
         )}
       </div>

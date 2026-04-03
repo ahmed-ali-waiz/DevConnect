@@ -116,37 +116,35 @@ const StoryBar = () => {
 
   return (
     <>
-      <div className="w-full bg-(--bg-primary) border-b border-(--border-glass) py-4 relative z-10">
+      <div className="w-full bg-[#000000] border-b border-[#262626] py-3 relative z-10">
         <div
-          className="flex space-x-4 overflow-x-auto px-4 custom-scrollbar pb-2"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          className="flex space-x-4 overflow-x-auto px-4 scrollbar-none pb-1 scroll-touch snap-x snap-mandatory"
+          style={{ touchAction: 'pan-x' }}
         >
           {/* Add Story Button */}
           <div
-            className="flex flex-col items-center shrink-0 cursor-pointer group space-y-2"
+            className="flex flex-col items-center shrink-0 cursor-pointer group space-y-1.5"
             onClick={() => addStoryInputRef.current?.click()}
           >
-            <div className="relative w-16 h-16 rounded-full border-2 border-(--border-glass) p-0.5 group-hover:border-(--text-muted) transition-colors">
-              <Avatar src={user?.profilePic} alt={user?.name || 'You'} size="lg" className="opacity-70 group-hover:opacity-100 transition-opacity" />
-              <div className="absolute bottom-0 right-0 w-5 h-5 bg-(--accent-primary) rounded-full border-2 border-(--bg-primary) flex items-center justify-center shadow-(--shadow-glow)">
-                <Plus size={12} className="text-[#050810] font-bold" />
+            <div className="relative w-16 h-16 rounded-full p-[2px]">
+              <Avatar src={user?.profilePic} alt={user?.name || 'You'} size="lg" className="w-full h-full" />
+              <div className="absolute bottom-0 right-0 w-[22px] h-[22px] bg-[#0095f6] rounded-full border-[3px] border-black flex items-center justify-center">
+                <Plus size={14} className="text-white font-bold" strokeWidth={3} />
               </div>
             </div>
-            <span className="text-xs text-(--text-muted) font-medium">Add Story</span>
+            <span className="text-[11px] text-[#f5f5f5] font-medium tracking-wide">Your story</span>
             <input ref={addStoryInputRef} type="file" accept="image/*,video/*" className="hidden" onChange={handleAddStory} />
           </div>
 
           {/* Stories List - One per user */}
           {storyGroups.map((group, groupIdx) => {
             const storyUser = group.user;
-            const firstStory = group.stories[0];
             const hasSeen = group.hasSeen;
             return (
               <motion.div
                 key={storyUser._id}
-                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex flex-col items-center shrink-0 cursor-pointer space-y-2"
+                className="flex flex-col items-center shrink-0 cursor-pointer space-y-1.5"
                 onClick={() => {
                   setActiveStoryGroup(groupIdx);
                   // Immediately mark as seen — remove the gradient border
@@ -157,8 +155,8 @@ const StoryBar = () => {
                   );
                 }}
               >
-                <div className={`relative w-16 h-16 rounded-full p-0.5 ${!hasSeen ? 'bg-linear-to-tr from-(--accent-primary) to-(--accent-secondary)' : 'bg-(--border-glass)'}`}>
-                  <div className="w-full h-full rounded-full border-[3px] border-(--bg-primary) overflow-hidden">
+                <div className={`relative w-16 h-16 rounded-full p-[2px] ${!hasSeen ? 'bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7]' : 'bg-[#262626]'}`}>
+                  <div className="w-full h-full rounded-full border-[2px] border-black overflow-hidden object-cover bg-black">
                     <img
                       src={storyUser.profilePic || `https://ui-avatars.com/api/?name=${storyUser.name || 'U'}&background=0D1117&color=A78BFA`}
                       alt={storyUser.name}
@@ -167,12 +165,12 @@ const StoryBar = () => {
                   </div>
                   {/* Story count indicator */}
                   {group.stories.length > 1 && (
-                    <div className="absolute bottom-0 right-0 w-5 h-5 bg-zinc-900 border-2 border-(--bg-primary) rounded-full flex items-center justify-center">
-                      <span className="text-[10px] text-white font-semibold">{group.stories.length}</span>
+                    <div className="absolute top-0 right-0 w-4 h-4 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center border border-black/20">
+                      <span className="text-[9px] text-white font-bold">{group.stories.length}</span>
                     </div>
                   )}
                 </div>
-                <span className="text-xs text-(--text-primary) font-medium max-w-16 truncate">{storyUser.username}</span>
+                <span className="text-[11px] text-[#f5f5f5] font-medium max-w-[68px] truncate tracking-wide">{storyUser.username}</span>
               </motion.div>
             );
           })}

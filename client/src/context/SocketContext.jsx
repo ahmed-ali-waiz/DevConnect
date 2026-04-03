@@ -52,10 +52,18 @@ export const SocketProvider = ({ children }) => {
     if (!socket) return;
     const handler = ({ message, conversationId }) => {
       dispatch(addMessage({ conversationId, message }));
+      
+      // Determine preview text for lastMessage
+      let previewText = message.text;
+      if (!previewText) {
+        if (message.audio) previewText = '🎤 Voice note';
+        else if (message.image) previewText = '📷 Image';
+      }
+      
       dispatch(updateLastMessage({
         conversationId,
         lastMessage: {
-          text: message.text || '📷 Image',
+          text: previewText,
           sender: message.sender,
           createdAt: message.createdAt,
         },

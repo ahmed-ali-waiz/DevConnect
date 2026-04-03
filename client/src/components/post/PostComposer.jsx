@@ -344,7 +344,7 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
   };
 
   return (
-    <div className="glass-card p-4 mx-4 md:mx-0 mb-6 transition-all duration-300 relative">
+    <div className="glass-card p-3 sm:p-4 mx-4 md:mx-0 mb-6 transition-all duration-300 relative">
       <form onSubmit={handleSubmit}>
         <div className="flex space-x-3">
           <Avatar
@@ -394,8 +394,8 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
                 value={text}
                 onChange={handleTextChange}
                 onFocus={() => setIsExpanded(true)}
-                className={`w-full bg-transparent text-(--text-primary) placeholder-(--text-muted) focus:outline-none resize-none transition-all duration-300 ${
-                  isExpanded ? 'min-h-[100px] text-lg' : 'h-10 text-base'
+                className={`w-full bg-transparent text-(--text-primary) placeholder-(--text-muted) focus:outline-none resize-none transition-all duration-300 text-base ${
+                  isExpanded ? 'min-h-[120px]' : 'h-10'
                 }`}
               />
             )}
@@ -411,9 +411,7 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
                         ? 'grid-cols-1'
                         : mediaItems.length === 2
                         ? 'grid-cols-2'
-                        : mediaItems.length === 3
-                        ? 'grid-cols-2'
-                        : 'grid-cols-2'
+                        : 'grid-cols-2 sm:grid-cols-3'
                     }`}
                   >
                     {mediaItems.map((item, idx) => (
@@ -556,7 +554,7 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
                   <div className="flex space-x-1 sm:space-x-2">
                     {/* Photo upload — supports multiple */}
                     <label
-                      className={`p-2 rounded-full cursor-pointer transition-colors group relative ${
+                      className={`p-2 rounded-full cursor-pointer transition-colors group relative touch-target ${
                         videoItem
                           ? 'text-(--text-dim) cursor-not-allowed'
                           : 'text-(--accent-primary) hover:bg-(--accent-primary)/10'
@@ -578,7 +576,7 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
 
                     {/* Video upload */}
                     <label
-                      className={`p-2 rounded-full cursor-pointer transition-colors group relative hidden sm:block ${
+                      className={`p-2 rounded-full cursor-pointer transition-colors group relative hidden sm:flex touch-target ${
                         mediaItems.length > 0
                           ? 'text-(--text-dim) cursor-not-allowed'
                           : 'text-(--accent-primary) hover:bg-(--accent-primary)/10'
@@ -601,7 +599,7 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
                     <button
                       type="button"
                       onClick={() => setShowCode(!showCode)}
-                      className={`p-2 rounded-full cursor-pointer transition-colors group relative ${
+                      className={`p-2 rounded-full cursor-pointer transition-colors group relative touch-target ${
                         showCode
                           ? 'bg-(--accent-secondary)/20 text-(--accent-secondary)'
                           : 'text-(--accent-secondary) hover:bg-(--accent-secondary)/10'
@@ -618,7 +616,7 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
                       <button
                         type="button"
                         onClick={() => setShowEmoji(!showEmoji)}
-                        className={`p-2 rounded-full cursor-pointer transition-colors group relative ${
+                        className={`p-2 rounded-full cursor-pointer transition-colors group relative touch-target ${
                           showEmoji
                             ? 'bg-(--accent-green)/20 text-(--accent-green)'
                             : 'text-(--accent-green) hover:bg-(--accent-green)/10'

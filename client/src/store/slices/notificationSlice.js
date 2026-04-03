@@ -22,11 +22,18 @@ const notificationSlice = createSlice({
       state.notifications = state.notifications.map(n => ({ ...n, read: true }));
       state.unreadCount = 0;
     },
+    markReadLocal: (state, action) => {
+      const notif = state.notifications.find(n => (n._id || n.id) === action.payload);
+      if (notif && !notif.read) {
+        notif.read = true;
+        state.unreadCount = Math.max(0, Math.floor(state.unreadCount - 1));
+      }
+    },
     setLoading: (state, action) => {
       state.loading = action.payload;
     },
   },
 });
 
-export const { setNotifications, setUnreadCount, addNotification, markAllReadLocal, setLoading } = notificationSlice.actions;
+export const { setNotifications, setUnreadCount, addNotification, markAllReadLocal, markReadLocal, setLoading } = notificationSlice.actions;
 export default notificationSlice.reducer;

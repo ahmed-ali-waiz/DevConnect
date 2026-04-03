@@ -1,6 +1,7 @@
 # Core
 node_modules
 .env
+.env.example
 mongodb-data
 dist
 dist-ssr

@@ -47,7 +47,7 @@ const ResetPasswordPage = () => {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-(--bg-primary) p-6">
+      <div className="min-h-[100dvh] flex items-center justify-center bg-(--bg-primary) p-6">
         <div className="text-center">
           <h2 className="text-2xl font-display font-bold text-white mb-4">Invalid Reset Link</h2>
           <p className="text-(--text-muted) mb-6">This link is missing or invalid.</p>
@@ -58,7 +58,7 @@ const ResetPasswordPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-(--bg-primary) p-6">
+    <div className="min-h-[100dvh] flex items-center justify-center bg-(--bg-primary) p-6">
       <motion.div
         className="w-full max-w-md glass-card p-8 sm:p-10 !bg-[rgba(255,255,255,0.02)]"
         variants={containerVariants}
@@ -94,7 +94,7 @@ const ResetPasswordPage = () => {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     placeholder="New password"
-                    className="input-field w-full pl-10 pr-10 h-12"
+                    className="input-field w-full pl-10 pr-10 h-12 text-base"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     required
@@ -110,7 +110,7 @@ const ResetPasswordPage = () => {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Confirm new password"
-                    className="input-field w-full pl-10 h-12"
+                    className="input-field w-full pl-10 h-12 text-base"
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                     required

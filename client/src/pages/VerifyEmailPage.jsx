@@ -29,7 +29,7 @@ const VerifyEmailPage = () => {
   }, [token]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-(--bg-primary) p-6">
+    <div className="min-h-dvh flex items-center justify-center bg-(--bg-primary) p-6">
       <motion.div
         className="w-full max-w-md glass-card p-8 sm:p-10 !bg-[rgba(255,255,255,0.02)] text-center"
         initial={{ opacity: 0, y: 20 }}

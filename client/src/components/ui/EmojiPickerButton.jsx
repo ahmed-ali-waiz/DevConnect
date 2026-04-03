@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Smile } from 'lucide-react';
 import EmojiPicker from 'emoji-picker-react';
 
-const EmojiPickerButton = ({ onEmoji }) => {
+const EmojiPickerButton = ({ onEmoji, customIcon, buttonClassName }) => {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef(null);
 
@@ -22,10 +22,10 @@ const EmojiPickerButton = ({ onEmoji }) => {
       <button
         type="button"
         onClick={handleOpen}
-        className="p-2 text-(--accent-green) hover:bg-(--accent-green)/10 rounded-full cursor-pointer transition-colors"
+        className={buttonClassName || "p-2 text-(--accent-green) hover:bg-(--accent-green)/10 rounded-full cursor-pointer transition-colors"}
         aria-label="Insert emoji"
       >
-        <Smile size={18} />
+        {customIcon || <Smile size={18} />}
       </button>
       {open && (
         <div

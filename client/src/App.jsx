@@ -18,6 +18,7 @@ import BookmarksPage from './pages/BookmarksPage';
 import SettingsPage from './pages/SettingsPage';
 import AdminPage from './pages/AdminPage';
 import PostPage from './pages/PostPage';
+import CodePage from './pages/CodePage';
 import CallOverlay from './components/call/CallOverlay';
 import CallScreen from './components/call/CallScreen';
 
@@ -26,7 +27,7 @@ function App() {
   const isAuth = !!token;
 
   return (
-    <div className="min-h-screen bg-(--bg-primary) text-(--text-primary) font-body transition-colors duration-300">
+    <div className="min-h-dvh bg-(--bg-primary) text-(--text-primary) font-body transition-colors duration-300">
       {/* Global call UI — renders above everything */}
       <CallOverlay />
       <CallScreen />
@@ -53,6 +54,7 @@ function App() {
           <Route path="/profile/:username" element={isAuth ? <ProfilePage /> : <Navigate to="/login" replace />} />
           <Route path="/chat" element={isAuth ? <ChatPage /> : <Navigate to="/login" replace />} />
           <Route path="/notifications" element={isAuth ? <NotificationsPage /> : <Navigate to="/login" replace />} />
+          <Route path="/code" element={isAuth ? <CodePage /> : <Navigate to="/login" replace />} />
           <Route path="/search" element={isAuth ? <SearchPage /> : <Navigate to="/login" replace />} />
           <Route path="/bookmarks" element={isAuth ? <BookmarksPage /> : <Navigate to="/login" replace />} />
           <Route path="/settings" element={isAuth ? <SettingsPage /> : <Navigate to="/login" replace />} />

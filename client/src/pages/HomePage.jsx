@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { MailWarning, X, Users, UserCheck, ChevronRight } from 'lucide-react';
+import { MailWarning, X, Users, UserCheck, ChevronRight, Heart, Plus, ChevronDown } from 'lucide-react';
 import StoryBar from '../components/story/StoryBar';
 import PostComposer from '../components/post/PostComposer';
 import PostCard from '../components/post/PostCard';
@@ -145,20 +145,42 @@ const HomePage = () => {
   const displayPosts = feed;
 
   return (
-    <div className="w-full flex-1 flex flex-col pt-\[56px] md:pt-0"> {/* offset for mobile topbar */}
+    <div className="w-full flex-1 flex flex-col bg-black md:bg-(--bg-primary)">
       {/* Feed Layout header - Desktop visible, mobile sticky */}
-      <div className="sticky top-14 md:top-0 z-20 bg-(--bg-primary)/80 backdrop-blur-md border-b border-(--border-glass)">
-        <div className="hidden md:block px-4 py-4">
+      <div className="sticky top-0 z-20 bg-black border-b border-[#262626]">
+        {/* Mobile Header (Instagram Style) */}
+        <div className="md:hidden flex items-center justify-between px-4 h-14">
+          <button className="text-white hover:opacity-70 transition-opacity">
+            <Plus size={24} strokeWidth={2} />
+          </button>
+          
+          <div 
+            className="flex items-center gap-1 cursor-pointer group" 
+            onClick={() => setActiveTab(activeTab === 'For You' ? 'Following' : 'For You')}
+          >
+            <span className="text-white font-serif italic text-2xl tracking-tight" style={{ fontFamily: "cursive, serif" }}>
+              DevConnect
+            </span>
+            <ChevronDown size={14} className="mt-1 text-white group-hover:opacity-70" />
+          </div>
+
+          <button onClick={() => navigate('/notifications')} className="text-white hover:opacity-70 transition-opacity relative">
+            <Heart size={24} strokeWidth={2} />
+          </button>
+        </div>
+
+        {/* Desktop Header */}
+        <div className="hidden md:block px-4 py-4 bg-(--bg-primary)/80">
           <h2 className="text-xl font-display font-bold">Home</h2>
         </div>
         
-        {/* Tab navigation */}
-        <div className="flex w-full overflow-x-auto custom-scrollbar border-t border-(--border-glass) md:border-t-0">
+        {/* Desktop Tab navigation */}
+        <div className="hidden md:flex w-full overflow-x-auto scrollbar-none border-t border-(--border-glass) md:border-t-0 bg-(--bg-primary)/80">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className="flex-1 min-w-\[100px\] text-center py-4 text-sm font-semibold relative text-(--text-muted) hover:bg-(--bg-glass) transition-colors group"
+              className="flex-1 min-w-[100px] text-center py-4 text-sm font-semibold relative text-(--text-muted) hover:bg-(--bg-glass) transition-colors group"
             >
               <span className={activeTab === tab ? 'text-(--text-primary)' : 'group-hover:text-(--text-primary) transition-colors'}>
                 {tab}
@@ -166,7 +188,7 @@ const HomePage = () => {
               {activeTab === tab && (
                 <motion.div
                   layoutId="feedTabIndicator"
-                  className="absolute bottom-0 left-1/4 right-1/4 h-1 bg-linear-to-r from-(--accent-primary) to-(--accent-secondary) rounded-t-full shadow-(--shadow-glow)"
+                  className="absolute bottom-0 left-1/4 right-1/4 h-1 bg-gradient-to-r from-(--accent-primary) to-(--accent-secondary) rounded-t-full shadow-(--shadow-glow)"
                 />
               )}
             </button>
@@ -174,7 +196,7 @@ const HomePage = () => {
         </div>
       </div>
 
-      <div className="flex-1 min-h-screen">
+      <div className="flex-1 min-h-dvh">
         {/* Email verification banner */}
         {user && user.isVerified === false && !dismissedBanner && (
           <motion.div
@@ -201,7 +223,10 @@ const HomePage = () => {
 
         <StoryBar />
         
-        <PostComposer />
+        {/* PostComposer — desktop only; IG doesn't show inline composer in the mobile feed */}
+        <div className="hidden md:block">
+          <PostComposer />
+        </div>
 
         {/* Following Users Section */}
         <AnimatePresence>
@@ -230,7 +255,7 @@ const HomePage = () => {
                   {loadingFollowing ? (
                     <div className="flex gap-3 overflow-hidden">
                       {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="flex-shrink-0 w-[140px] bg-(--bg-glass) rounded-xl p-3 animate-pulse">
+                        <div key={i} className="flex-shrink-0 w-[120px] sm:w-[140px] bg-(--bg-glass) rounded-xl p-3 animate-pulse">
                           <div className="w-12 h-12 rounded-full bg-(--border-glass) mx-auto mb-2" />
                           <div className="h-3 w-16 bg-(--border-glass) rounded mx-auto mb-1" />
                           <div className="h-2 w-12 bg-(--border-glass) rounded mx-auto" />
@@ -257,7 +282,7 @@ const HomePage = () => {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           transition={{ duration: 0.3, delay: idx * 0.05 }}
                           onClick={() => navigate(`/profile/${u.username}`)}
-                          className="flex-shrink-0 w-[140px] bg-(--bg-glass) hover:bg-[rgba(255,255,255,0.06)] border border-(--border-glass) hover:border-(--accent-primary)/30 rounded-xl p-3 cursor-pointer transition-all duration-300 group hover:shadow-[0_0_20px_rgba(110,231,247,0.08)]"
+                          className="flex-shrink-0 w-[120px] sm:w-[140px] bg-(--bg-glass) hover:bg-[rgba(255,255,255,0.06)] border border-(--border-glass) hover:border-(--accent-primary)/30 rounded-xl p-3 cursor-pointer transition-all duration-300 group hover:shadow-[0_0_20px_rgba(110,231,247,0.08)]"
                         >
                           <div className="flex flex-col items-center text-center">
                             <Avatar src={u.profilePic} alt={u.name} size="lg" className="mb-2" />
@@ -287,7 +312,7 @@ const HomePage = () => {
 
         {/* Feed Posts */}
         <motion.div 
-          className="pb-20 md:pb-8"
+          className="pb-28 md:pb-8"
           initial="hidden"
           animate="show"
           variants={{
@@ -299,16 +324,28 @@ const HomePage = () => {
           }}
         >
           {loading ? (
-            <div className="space-y-4 px-4 md:px-0">
+            <div className="space-y-0">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="glass-card p-4 md:p-5 mx-4 md:mx-0 space-y-4">
-                  <div className="flex space-x-3">
-                    <Skeleton type="avatar" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton type="text" className="w-1/2" />
-                      <Skeleton type="text" className="w-3/4" />
-                      <Skeleton type="image" className="h-32" />
+                <div key={i} className="bg-black border-b border-[#262626] pb-4 mb-0 animate-pulse">
+                  {/* Header skeleton */}
+                  <div className="flex items-center gap-2.5 px-3 py-3">
+                    <div className="w-9 h-9 rounded-full bg-[#262626]" />
+                    <div className="flex-1 space-y-1.5">
+                      <div className="h-2.5 w-28 bg-[#262626] rounded" />
+                      <div className="h-2 w-16 bg-[#262626] rounded" />
                     </div>
+                  </div>
+                  {/* Media skeleton */}
+                  <div className="w-full aspect-square bg-[#1a1a1a]" />
+                  {/* Actions skeleton */}
+                  <div className="flex gap-3 px-3 pt-3">
+                    <div className="w-6 h-6 rounded bg-[#262626]" />
+                    <div className="w-6 h-6 rounded bg-[#262626]" />
+                    <div className="w-6 h-6 rounded bg-[#262626]" />
+                  </div>
+                  <div className="px-3 pt-2 space-y-1.5">
+                    <div className="h-2.5 w-20 bg-[#262626] rounded" />
+                    <div className="h-2.5 w-48 bg-[#262626] rounded" />
                   </div>
                 </div>
               ))}
@@ -338,7 +375,7 @@ const HomePage = () => {
                   </svg>
                 )}
                 {!hasMore && displayPosts.length > 0 && (
-                  <p className="text-xs text-(--text-dim)">You're all caught up</p>
+                  <p className="text-xs text-[#a8a8a8] py-2">You're all caught up ✓</p>
                 )}
               </div>
             </>

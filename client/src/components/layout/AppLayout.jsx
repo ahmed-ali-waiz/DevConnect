@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useSearchParams } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import RightPanel from './RightPanel';
 import MobileNav from './MobileNav';
@@ -8,27 +8,31 @@ import PostComposer from '../post/PostComposer';
 
 const AppLayout = () => {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [showCompose, setShowCompose] = useState(false);
+  
   const hideLayoutPattern = ['/login', '/register', '/forgot-password'];
   const shouldHideLayout = hideLayoutPattern.includes(location.pathname);
+
+  const isChatPage = location.pathname === '/chat';
+  const isActiveChat = isChatPage && !!searchParams.get('conversationId');
 
   if (shouldHideLayout) {
     return <Outlet />;
   }
 
   return (
-    <div className="flex justify-center min-h-screen bg-(--bg-primary)">
-      {/* items-start: keep sidebar / main / right panel top-aligned when main is very tall (avoids huge empty space above the sidebar) */}
+    <div className="flex justify-center min-h-dvh bg-(--bg-primary)">
       <div className="flex w-full max-w-[1400px] items-start">
-        {/* Left Sidebar */}
+        {/* Left Sidebar — icon-only on md, full on xl */}
         <Sidebar onCompose={() => setShowCompose(true)} />
 
         {/* Main Content Area */}
-        <main className="flex-1 min-w-0 border-r border-(--border-glass) relative pb-16 md:pb-0">
+        <main className={`flex-1 flex flex-col min-w-0 border-r border-(--border-glass) relative overflow-x-hidden ${isActiveChat ? 'pb-0' : 'pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0'}`}>
           <Outlet />
         </main>
 
-        {/* Right Panel */}
+        {/* Right Panel — only on lg+ */}
         <RightPanel />
 
         {/* Mobile Navigation */}

@@ -51,7 +51,11 @@
 html, body {
   margin: 0;
   padding: 0;
-  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
 body {
@@ -141,3 +145,34 @@ code, pre, .font-mono {
     background-position: 0% 50%;
   }
 }
+
+/* ─── Responsive Utilities ─────────────────────────────────────────── */
+
+/* iOS safe-area inset helpers */
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.mb-safe { margin-bottom: env(safe-area-inset-bottom, 0px); }
+
+/* Touch-friendly — prevent callout / highlight on tap */
+button, a, [role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Minimum 44px Apple HIG touch targets */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Smooth inertial scroll on iOS */
+.scroll-touch { -webkit-overflow-scrolling: touch; }
+
+/* Hide scrollbar but preserve functionality */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar { display: none; }

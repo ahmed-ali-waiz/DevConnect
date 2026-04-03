@@ -3,10 +3,14 @@ import { existsSync } from "node:fs";
 import net from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import dotenv from "dotenv";
+
+dotenv.config({ path: path.join(path.dirname(fileURLToPath(import.meta.url)), "..", ".env") });
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const serverDir = path.join(__dirname, "..");
 const MONGO_PORT = 27017;
+const mongoUri = process.env.MONGO_URI || "";
 
 function findMongod() {
   if (process.env.MONGOD_EXE && existsSync(process.env.MONGOD_EXE)) {
@@ -45,6 +49,12 @@ async function waitForPort(port, timeoutMs = 45000) {
 }
 
 async function ensureMongo() {
+  // If using Atlas (mongodb+srv / remote URI), do not spawn local mongod.
+  if (mongoUri.startsWith("mongodb+srv://") || (mongoUri.startsWith("mongodb://") && !mongoUri.includes("127.0.0.1") && !mongoUri.includes("localhost"))) {
+    console.log("Remote MongoDB URI detected. Skipping local mongod startup.");
+    return;
+  }
+
   if (await portOpen(MONGO_PORT)) {
     console.log("MongoDB already listening on port", MONGO_PORT);
     return;

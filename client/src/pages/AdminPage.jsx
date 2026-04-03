@@ -109,7 +109,7 @@ const AdminPage = () => {
   if (!user || user.role !== 'admin') return null;
 
   return (
-    <div className="w-full flex-1 flex flex-col pt-14 md:pt-0 overflow-y-auto custom-scrollbar h-[calc(100vh-56px)] md:h-screen">
+    <div className="w-full flex-1 flex flex-col pt-14 md:pt-0 overflow-y-auto custom-scrollbar h-[calc(100dvh-56px)] md:h-dvh">
 
       {/* Header */}
       <div className="sticky top-0 z-30 bg-(--bg-primary)/90 backdrop-blur-md border-b border-(--border-glass) py-4 px-4 sm:px-8">

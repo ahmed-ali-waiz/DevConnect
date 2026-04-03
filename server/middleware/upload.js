@@ -5,11 +5,15 @@ import { cloudinary } from "../config/cloudinary.js";
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "video/mp4", "video/webm"];
+  const allowedTypes = [
+    "image/jpeg", "image/png", "image/gif", "image/webp", 
+    "video/mp4", "video/webm",
+    "audio/webm", "audio/ogg", "audio/mpeg", "audio/mp4", "audio/wav"
+  ];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error("Invalid file type. Only images and videos are allowed."), false);
+    cb(new Error("Invalid file type. Only images, videos, and audio are allowed."), false);
   }
 };
 

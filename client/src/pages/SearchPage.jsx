@@ -1,12 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Flame, Hash } from 'lucide-react';
-import { useGSAP } from '@gsap/react';
-import gsap from 'gsap';
-import Avatar from '../components/ui/Avatar';
-import PostCard from '../components/post/PostCard';
-import { search as searchApi, getTrendingHashtags } from '../services/searchService';
+import { Search, X, Heart, MessageCircle, Play, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { search as searchApi } from '../services/searchService';
+import { getExplorePosts } from '../services/postService';
 
 const useDebounce = (value, delay) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -17,156 +14,320 @@ const useDebounce = (value, delay) => {
   return debouncedValue;
 };
 
+// Format large numbers like Instagram (1.2K, 3.4M)
+const formatCount = (n) => {
+  if (!n) return '0';
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return String(n);
+};
+
+// ── Explore Grid Tile ────────────────────────────────────────────
+const ExploreTile = ({ post, size = 'normal' }) => {
+  const [hovered, setHovered] = useState(false);
+  const thumb = post.images?.[0] || post.image || null;
+  const hasVideo = !!post.video;
+  const hasMultiple = (post.images?.length || 0) > 1;
+  const likeCount = post.likes?.length ?? post.likesCount ?? 0;
+  const commentCount = post.commentCount ?? post.comments?.length ?? 0;
+
+  return (
+    <Link
+      to={`/post/${post._id}`}
+      className={`relative block overflow-hidden bg-[#1a1a1a] ${size === 'large' ? 'row-span-2 col-span-2' : ''}`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ aspectRatio: size === 'large' ? '1' : '1' }}
+    >
+      {/* Thumbnail */}
+      {thumb ? (
+        <img
+          src={thumb}
+          alt=""
+          className="w-full h-full object-cover"
+          loading="lazy"
+        />
+      ) : hasVideo ? (
+        <video src={post.video} className="w-full h-full object-cover" muted preload="metadata" />
+      ) : (
+        // Text-only post fallback
+        <div className="w-full h-full flex items-center justify-center p-3 bg-gradient-to-br from-[#1a1a1a] to-[#262626]">
+          <p className="text-[11px] text-[#a8a8a8] line-clamp-4 text-center leading-relaxed">
+            {post.text || 'No preview'}
+          </p>
+        </div>
+      )}
+
+      {/* Type indicators (top-right) */}
+      <div className="absolute top-2 right-2 flex items-center gap-1">
+        {hasMultiple && (
+          <div className="bg-black/50 rounded p-0.5">
+            <ImageIcon size={14} className="text-white" />
+          </div>
+        )}
+        {hasVideo && (
+          <div className="bg-black/50 rounded p-0.5">
+            <Play size={14} className="text-white fill-white" />
+          </div>
+        )}
+      </div>
+
+      {/* Hover overlay with stats */}
+      <AnimatePresence>
+        {hovered && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="absolute inset-0 bg-black/40 flex items-center justify-center gap-6"
+          >
+            <div className="flex items-center gap-1.5 text-white font-semibold text-sm">
+              <Heart size={18} className="fill-white" />
+              {formatCount(likeCount)}
+            </div>
+            <div className="flex items-center gap-1.5 text-white font-semibold text-sm">
+              <MessageCircle size={18} className="fill-white" />
+              {formatCount(commentCount)}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Link>
+  );
+};
+
+// ── Search Result - User Row ─────────────────────────────────────
+const UserRow = ({ user }) => (
+  <Link
+    to={`/profile/${user.username}`}
+    className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#1a1a1a] active:bg-[#262626] transition-colors"
+  >
+    <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 border border-[#363636]">
+      <img
+        src={user.profilePic || `https://ui-avatars.com/api/?name=${user.name || 'U'}&background=262626&color=fff`}
+        alt={user.name}
+        className="w-full h-full object-cover"
+      />
+    </div>
+    <div className="min-w-0">
+      <p className="text-[14px] font-semibold text-white truncate">{user.username}</p>
+      <p className="text-[13px] text-[#a8a8a8] truncate">{user.name}</p>
+    </div>
+  </Link>
+);
+
+// ── Main SearchPage ──────────────────────────────────────────────
 const SearchPage = () => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
   const [query, setQuery] = useState(initialQuery);
+  const [focused, setFocused] = useState(false);
   const [results, setResults] = useState({ users: [], posts: [] });
-  const [trendingTags, setTrendingTags] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const searchInputRef = useRef(null);
+  const [explorePosts, setExplorePosts] = useState([]);
+  const [exploreLoading, setExploreLoading] = useState(true);
+  const [explorePage, setExplorePage] = useState(1);
+  const [exploreHasMore, setExploreHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const inputRef = useRef(null);
+  const observerRef = useRef(null);
   const debouncedQuery = useDebounce(query.trim(), 300);
 
-  useEffect(() => {
-    getTrendingHashtags().then(setTrendingTags).catch(() => {});
-  }, []);
-
+  // Sync query with URL params
   useEffect(() => {
     const q = searchParams.get('q') || '';
     if (q !== query) setQuery(q);
   }, [searchParams]);
 
+  // Fetch explore posts (most liked)
+  const fetchExplore = useCallback(async (page = 1) => {
+    if (page === 1) setExploreLoading(true);
+    else setLoadingMore(true);
+    try {
+      const data = await getExplorePosts(page, 21);
+      if (page === 1) {
+        setExplorePosts(data.posts);
+      } else {
+        setExplorePosts(prev => [...prev, ...data.posts]);
+      }
+      setExploreHasMore(data.hasMore);
+      setExplorePage(page);
+    } catch {
+      // silent
+    } finally {
+      setExploreLoading(false);
+      setLoadingMore(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchExplore(1);
+  }, [fetchExplore]);
+
+  // Search when query changes
   useEffect(() => {
     if (debouncedQuery.length < 2) {
       setResults({ users: [], posts: [] });
       return;
     }
-    setLoading(true);
+    setSearchLoading(true);
     searchApi(debouncedQuery, 'all')
       .then(setResults)
       .catch(() => setResults({ users: [], posts: [] }))
-      .finally(() => setLoading(false));
+      .finally(() => setSearchLoading(false));
   }, [debouncedQuery]);
 
-  useGSAP(() => {
-    if (!searchInputRef.current) return;
-    gsap.from(searchInputRef.current, {
-      scaleX: 0.95,
-      opacity: 0,
-      duration: 0.5,
-      ease: 'back.out(1.5)'
-    });
-  }, []);
+  // Infinite scroll observer
+  const lastTileRef = useCallback(
+    (node) => {
+      if (loadingMore) return;
+      if (observerRef.current) observerRef.current.disconnect();
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && exploreHasMore && !debouncedQuery) {
+          fetchExplore(explorePage + 1);
+        }
+      });
+      if (node) observerRef.current.observe(node);
+    },
+    [loadingMore, exploreHasMore, explorePage, debouncedQuery, fetchExplore]
+  );
 
-  const clearSearch = () => setQuery('');
-  const hasResults = (results.users?.length > 0) || (results.posts?.length > 0);
+  const isSearching = debouncedQuery.length >= 2;
+  const hasSearchResults = (results.users?.length > 0) || (results.posts?.length > 0);
+
+  // Build the grid pattern: every 3rd group has a "large" tile
+  // Pattern: [small, small, small] [small, small, small] [large, small, small, small] repeat
+  const buildGrid = (posts) => {
+    const tiles = [];
+    let idx = 0;
+    let groupIndex = 0;
+
+    while (idx < posts.length) {
+      if (groupIndex % 3 === 2 && idx + 4 < posts.length) {
+        // Large tile group: 1 large (2x2) + 2 small stacked
+        tiles.push({ post: posts[idx], size: 'large', key: posts[idx]._id });
+        idx++;
+        tiles.push({ post: posts[idx], size: 'normal', key: posts[idx]._id });
+        idx++;
+        tiles.push({ post: posts[idx], size: 'normal', key: posts[idx]._id });
+        idx++;
+      } else {
+        // Normal row of 3
+        for (let j = 0; j < 3 && idx < posts.length; j++) {
+          tiles.push({ post: posts[idx], size: 'normal', key: posts[idx]._id });
+          idx++;
+        }
+      }
+      groupIndex++;
+    }
+    return tiles;
+  };
 
   return (
-    <div className="w-full flex-1 flex flex-col pt-14 md:pt-0">
-      
-      {/* Sticky Header with Search */}
-      <div className="sticky top-14 md:top-0 z-30 bg-(--bg-primary)/80 backdrop-blur-md border-b border-(--border-glass) py-4 px-4 sm:px-6">
-        <div ref={searchInputRef} className="relative group max-w-2xl mx-auto">
-          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-(--text-muted) group-focus-within:text-(--accent-primary) transition-colors">
-            <Search size={20} />
+    <div className="w-full flex-1 flex flex-col bg-black min-h-dvh">
+
+      {/* ── SEARCH BAR ── */}
+      <div className="sticky top-0 z-30 bg-black px-4 pt-3 pb-2">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+            <Search size={16} className="text-[#a8a8a8]" />
           </div>
-          <input 
-            type="text" 
-            placeholder="Search posts, tags, or developers..." 
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full bg-(--bg-glass) border border-(--border-glass) rounded-full py-3.5 pl-12 pr-12 text-sm sm:text-base focus:outline-none focus:border-(--accent-primary) focus:bg-[rgba(255,255,255,0.06)] focus:shadow-[0_0_0_1px_rgba(110,231,247,0.3)] transition-all placeholder-(--text-muted) shadow-inner"
-            autoFocus
+            onFocus={() => setFocused(true)}
+            className="w-full bg-[#262626] rounded-xl py-2.5 pl-10 pr-10 text-[14px] text-white placeholder-[#a8a8a8] outline-none border border-transparent focus:border-[#363636] transition-colors"
           />
-          <AnimatePresence>
-            {query && (
-              <motion.button
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.5 }}
-                onClick={clearSearch}
-                className="absolute inset-y-0 right-4 flex items-center text-(--text-muted) hover:text-white transition-colors"
-                type="button"
-              >
-                <div className="w-5 h-5 rounded-full bg-(--border-glass) flex items-center justify-center text-[10px] font-bold">X</div>
-              </motion.button>
-            )}
-          </AnimatePresence>
+          {query && (
+            <button
+              onClick={() => { setQuery(''); inputRef.current?.focus(); }}
+              className="absolute inset-y-0 right-3 flex items-center"
+            >
+              <div className="w-[18px] h-[18px] rounded-full bg-[#a8a8a8] flex items-center justify-center">
+                <X size={12} className="text-black" strokeWidth={3} />
+              </div>
+            </button>
+          )}
         </div>
-
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 p-4 sm:p-6 pb-24 md:pb-6">
-        {!query || query.length < 2 ? (
-          <div className="max-w-2xl mx-auto space-y-8">
-            <div className="glass-card p-6 overflow-hidden relative">
-              <div className="absolute right-0 top-0 w-32 h-32 bg-(--accent-primary) rounded-full mix-blend-screen filter blur-[80px] opacity-20 pointer-events-none" />
-              <h2 className="text-xl font-display font-bold flex items-center mb-6">
-                <Flame className="text-(--accent-orange) mr-2" /> 
-                Trending Hashtags
-              </h2>
-              <div className="space-y-4">
-                {trendingTags.length > 0 ? (
-                  trendingTags.map((item, i) => (
-                    <Link key={i} to={`/search?q=%23${item.tag}`}>
-                      <div className="flex justify-between items-center group p-2 -mx-2 rounded-xl hover:bg-(--bg-glass) transition-colors">
-                        <div className="flex items-center gap-2">
-                          <Hash size={18} className="text-(--accent-primary)" />
-                          <p className="font-semibold text-(--text-primary) group-hover:text-(--accent-primary) transition-colors">#{item.tag}</p>
-                        </div>
-                        <p className="text-sm text-(--text-muted)">{item.count} posts</p>
-                      </div>
-                    </Link>
-                  ))
-                ) : (
-                  <p className="text-(--text-muted) text-sm">No trending tags yet</p>
-                )}
-              </div>
+      {/* ── CONTENT ── */}
+      <div className="flex-1 pb-20 md:pb-4">
+
+        {/* Search results mode */}
+        {isSearching ? (
+          searchLoading ? (
+            <div className="flex justify-center pt-16">
+              <Loader2 size={24} className="animate-spin text-[#a8a8a8]" />
             </div>
-          </div>
-        ) : loading ? (
-          <div className="max-w-2xl mx-auto flex flex-col items-center justify-center pt-20 text-(--text-muted)">
-            <Search size={48} className="opacity-20 mb-4 animate-pulse" />
-            <p className="text-lg">Searching...</p>
-          </div>
-        ) : hasResults ? (
-          <div className="max-w-2xl mx-auto space-y-8">
-            {results.users?.length > 0 && (
-              <div>
-                <h3 className="text-lg font-bold mb-4">People</h3>
-                <div className="space-y-2">
+          ) : hasSearchResults ? (
+            <div>
+              {/* Users */}
+              {results.users?.length > 0 && (
+                <div>
                   {results.users.map((u) => (
-                    <Link key={u._id} to={`/profile/${u.username}`} className="flex items-center gap-3 p-3 rounded-xl hover:bg-(--bg-glass) transition-colors">
-                      <Avatar src={u.profilePic} alt={u.name} size="md" />
-                      <div>
-                        <p className="font-semibold text-(--text-primary)">{u.name}</p>
-                        <p className="text-sm text-(--text-muted)">@{u.username}</p>
-                      </div>
-                    </Link>
+                    <UserRow key={u._id} user={u} />
                   ))}
                 </div>
-              </div>
-            )}
-            {results.posts?.length > 0 && (
-              <div>
-                <h3 className="text-lg font-bold mb-4">Posts</h3>
-                <div className="space-y-4">
-                  {results.posts.map((post) => (
-                    <PostCard key={post._id} post={post} />
-                  ))}
+              )}
+
+              {/* Posts as grid */}
+              {results.posts?.length > 0 && (
+                <div className="mt-2">
+                  <p className="px-4 py-2 text-[14px] font-semibold text-white">Posts</p>
+                  <div className="grid grid-cols-3 gap-0.5">
+                    {results.posts.map((post) => (
+                      <ExploreTile key={post._id} post={post} />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center pt-20 text-center px-8">
+              <Search size={44} className="text-[#363636] mb-4" />
+              <p className="text-[14px] text-[#a8a8a8]">No results found for "{query}"</p>
+            </div>
+          )
         ) : (
-          <div className="max-w-2xl mx-auto flex flex-col items-center justify-center pt-20 text-(--text-muted)">
-            <Search size={48} className="opacity-20 mb-4" />
-            <p className="text-lg">No results for "{query}"</p>
-          </div>
+          /* ── Explore Grid (default view) ── */
+          exploreLoading ? (
+            <div className="grid grid-cols-3 gap-0.5">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div key={i} className="aspect-square bg-[#1a1a1a] animate-pulse" />
+              ))}
+            </div>
+          ) : explorePosts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center pt-20 text-center px-8">
+              <Search size={44} className="text-[#363636] mb-4" />
+              <p className="text-[14px] text-[#a8a8a8]">No posts yet. Be the first to share!</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-3 gap-0.5">
+                {explorePosts.map((post, i) => (
+                  <div
+                    key={post._id}
+                    ref={i === explorePosts.length - 1 ? lastTileRef : null}
+                  >
+                    <ExploreTile post={post} />
+                  </div>
+                ))}
+              </div>
+              {loadingMore && (
+                <div className="flex justify-center py-6">
+                  <Loader2 size={20} className="animate-spin text-[#a8a8a8]" />
+                </div>
+              )}
+            </>
+          )
         )}
       </div>
-
     </div>
   );
 };

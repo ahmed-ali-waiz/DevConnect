@@ -115,7 +115,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div ref={containerRef} className="min-h-screen flex flex-col md:flex-row bg-(--bg-primary)">
+    <div ref={containerRef} className="min-h-[100dvh] flex flex-col md:flex-row bg-(--bg-primary)">
       {/* Left Panel - Brand */}
       <div className="hidden md:flex md:w-1/2 lg:w-[55%] relative overflow-hidden bg-linear-to-br from-[#050810] to-[#0d1117] items-center justify-center p-12">
         {/* Animated Background Mesh */}
@@ -213,7 +213,7 @@ const LoginPage = () => {
 
           <motion.div variants={itemVariants} className="flex items-center space-x-4 mb-8">
             <div className="flex-1 h-px bg-(--border-glass)"></div>
-            <span className="text-xs text-(--text-muted) uppercase tracking-wider font-semibold">Or with email</span>
+            <span className="text-[10px] text-(--text-muted) uppercase tracking-widest font-bold">Or with email</span>
             <div className="flex-1 h-px bg-(--border-glass)"></div>
           </motion.div>
 
@@ -231,7 +231,7 @@ const LoginPage = () => {
                 <input
                   type="email"
                   placeholder="name@example.com"
-                  className="input-field w-full pl-10 h-12"
+                  className="input-field w-full pl-10 h-12 text-base"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 />
@@ -244,7 +244,7 @@ const LoginPage = () => {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Password"
-                  className="input-field w-full pl-10 pr-10 h-12"
+                  className="input-field w-full pl-10 pr-10 h-12 text-base"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 />

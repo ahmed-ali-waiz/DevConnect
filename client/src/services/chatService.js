@@ -15,10 +15,15 @@ export const getMessages = async (conversationId, page = 1, limit = 50) => {
   return data;
 };
 
-export const sendMessage = async (conversationId, text, image) => {
+export const sendMessage = async (conversationId, text, image, audio) => {
   const formData = new FormData();
   formData.append('text', text);
   if (image) formData.append('image', image);
+  if (audio) {
+    // Use correct extension based on blob type
+    const ext = audio.type?.includes('ogg') ? 'ogg' : 'webm';
+    formData.append('audio', audio, `voice-note.${ext}`);
+  }
   const { data } = await api.post(`/chat/${conversationId}/messages`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });

@@ -108,13 +108,21 @@ export const sendMessage = async (req, res, next) => {
   try {
     const { text } = req.body;
     let imageUrl = "";
+    let audioUrl = "";
 
-    if (req.file) {
-      const result = await uploadToCloudinary(req.file.buffer, "devconnect/messages");
+    // Handle image upload
+    if (req.files?.image?.[0]) {
+      const result = await uploadToCloudinary(req.files.image[0].buffer, "devconnect/messages");
       imageUrl = result.secure_url;
     }
 
-    if (!text && !imageUrl) {
+    // Handle audio upload - use 'video' type for audio files in Cloudinary
+    if (req.files?.audio?.[0]) {
+      const result = await uploadToCloudinary(req.files.audio[0].buffer, "devconnect/voice-notes", "video");
+      audioUrl = result.secure_url;
+    }
+
+    if (!text && !imageUrl && !audioUrl) {
       return res.status(400).json({ message: "Message content is required" });
     }
 
@@ -128,11 +136,19 @@ export const sendMessage = async (req, res, next) => {
       sender: req.user._id,
       text: text || "",
       image: imageUrl,
+      audio: audioUrl,
       readBy: [req.user._id],
     });
 
+    // Determine lastMessage preview text
+    let lastMessageText = text || "";
+    if (!lastMessageText) {
+      if (audioUrl) lastMessageText = "🎤 Voice note";
+      else if (imageUrl) lastMessageText = "📷 Image";
+    }
+
     conversation.lastMessage = {
-      text: text || "📷 Image",
+      text: lastMessageText,
       sender: req.user._id,
       createdAt: new Date(),
     };
@@ -170,6 +186,7 @@ export const deleteMessage = async (req, res, next) => {
     message.isDeleted = true;
     message.text = "";
     message.image = "";
+    message.audio = "";
     await message.save();
 
     res.json({ message: "Message deleted" });

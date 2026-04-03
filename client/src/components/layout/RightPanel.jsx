@@ -55,7 +55,7 @@ const RightPanel = () => {
       initial={{ x: 280, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: 'easeOut', delay: 0.2 }}
-      className="hidden lg:block w-\[280px] xl:w-[320px] h-screen sticky top-0 py-6 px-4 space-y-6 overflow-y-auto custom-scrollbar"
+      className="hidden lg:block w-\[280px] xl:w-[320px] h-dvh sticky top-0 py-6 px-4 space-y-6 overflow-y-auto custom-scrollbar"
     >
       {/* Search */}
       <div className="relative group">
