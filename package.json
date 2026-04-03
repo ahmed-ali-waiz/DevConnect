@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "description": "Root package.json for Railway deployment",
   "scripts": {
-    "start": "bash start.sh"
+    "build": "cd client && npm install --include=dev && npm run build && cd ../server && npm install",
+    "start": "cd server && node server.js"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }
