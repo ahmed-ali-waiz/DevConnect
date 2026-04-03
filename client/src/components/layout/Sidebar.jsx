@@ -119,8 +119,8 @@ const Sidebar = ({ onCompose }) => {
                 userId={user._id}
               />
               <div className="hidden xl:flex flex-col items-start truncate text-left ml-3">
-                <span className="font-semibold text-sm truncate w-full">{user.name}</span>
-                <span className="text-xs text-(--text-muted) truncate w-full">@{user.username}</span>
+                <span className="font-semibold text-sm truncate w-full group-hover:text-accent-primary transition-colors">{user.name}</span>
+                <span className="text-xs text-accent-primary truncate w-full">@{user.username}</span>
               </div>
             </div>
             <div onClick={handleLogout} className="hidden xl:block opacity-0 group-hover:opacity-100 transition-opacity text-(--text-muted) hover:text-red-400 p-2 ml-auto">

@@ -453,8 +453,8 @@ const ChatPage = () => {
         <div className="p-4 sm:px-5 pt-5 pb-3">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-1 cursor-pointer">
-              <h2 className="text-xl font-bold tracking-tight">{user?.username || 'Messages'}</h2>
-              <ChevronDown className="w-5 h-5 stroke-[3px]" />
+              <h2 className="text-xl font-bold tracking-tight text-accent-primary">{user?.username || 'Messages'}</h2>
+              <ChevronDown className="w-5 h-5 stroke-[3px] text-accent-primary" />
             </div>
             <button className="hover:opacity-70 transition-opacity p-1">
               <SquarePen className="w-6 h-6 stroke-[2px]" />
