@@ -452,7 +452,7 @@ const ChatPage = () => {
       <div className={`w-full md:w-80 lg:w-90 shrink-0 border-r border-[#262626] flex flex-col bg-[#000000] ${activeChat ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-4 sm:px-5 pt-5 pb-3">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-1 cursor-pointer">
+            <div className="flex items-center space-x-1">
               <h2 className="text-xl font-bold tracking-tight text-accent-primary">{user?.username || 'Messages'}</h2>
               <ChevronDown className="w-5 h-5 stroke-[3px] text-accent-primary" />
             </div>
@@ -497,7 +497,7 @@ const ChatPage = () => {
                 className={`flex items-center px-4 sm:px-5 py-2.5 cursor-pointer transition-colors hover:bg-[rgba(255,255,255,0.05)] ${isActive ? 'bg-[rgba(255,255,255,0.05)]' : ''}`}
               >
                 <div 
-                  className="relative mr-3 shrink-0 hover:opacity-80 transition-opacity"
+                  className="relative mr-3 shrink-0 hover:opacity-80 transition-opacity cursor-pointer"
                   onClick={(e) => { e.stopPropagation(); other.username && navigate(`/profile/${other.username}`); }}
                 >
                   <Avatar src={other.profilePic} alt={other.name} size="md" className="w-[54px] h-[54px]" isOnline={false} />
@@ -507,8 +507,7 @@ const ChatPage = () => {
                 </div>
                 <div className="flex-1 min-w-0 pr-2">
                   <h3 
-                    className={`truncate text-[15px] hover:opacity-80 transition-opacity ${hasUnread && !isActive ? 'font-bold' : 'font-medium text-[rgba(255,255,255,0.95)]'}`}
-                    onClick={(e) => { e.stopPropagation(); other.username && navigate(`/profile/${other.username}`); }}
+                    className={`truncate text-[15px] ${hasUnread && !isActive ? 'font-bold' : 'font-medium text-[rgba(255,255,255,0.95)]'}`}
                   >
                     {other.name}
                   </h3>
@@ -557,17 +556,19 @@ const ChatPage = () => {
                   <ArrowLeft className="w-5 h-5 stroke-[2]" />
                 </button>
 
-                <div 
-                  className="flex items-center gap-2.5 cursor-pointer min-w-0 hover:opacity-80 transition-opacity"
-                  onClick={() => otherParticipant?.username && navigate(`/profile/${otherParticipant.username}`)}
-                >
-                  <Avatar
-                    src={otherParticipant?.profilePic}
-                    alt={otherParticipant?.name}
-                    size="sm"
-                    className="w-8 h-8 shrink-0"
-                    isOnline={false}
-                  />
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div
+                    className="cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => otherParticipant?.username && navigate(`/profile/${otherParticipant.username}`)}
+                  >
+                    <Avatar
+                      src={otherParticipant?.profilePic}
+                      alt={otherParticipant?.name}
+                      size="sm"
+                      className="w-8 h-8 shrink-0"
+                      isOnline={false}
+                    />
+                  </div>
                   <div className="flex flex-col -space-y-0.5 min-w-0">
                     <h3 className="font-semibold text-[14px] truncate leading-tight">
                       {otherParticipant?.name}

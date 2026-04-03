@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutGrid, List, BookmarkX } from 'lucide-react';
+import { LayoutGrid, List, BookmarkX, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PostCard from '../components/post/PostCard';
 import Skeleton from '../components/ui/Skeleton';
 import { getBookmarks } from '../services/postService';
 
 const BookmarksPage = () => {
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState('list');
   const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,13 +23,18 @@ const BookmarksPage = () => {
   }, []);
 
   return (
-    <div className="w-full flex-1 flex flex-col pt-14 md:pt-0">
+    <div className="w-full flex-1 flex flex-col md:pt-0">
       
       {/* Header */}
-      <div className="sticky top-14 md:top-0 z-30 bg-(--bg-primary)/80 backdrop-blur-md border-b border-(--border-glass) py-4 px-4 sm:px-6 flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-display font-bold">Bookmarks</h2>
-          <p className="text-xs text-(--text-muted) mt-0.5">Private to you</p>
+      <div className="sticky top-0 md:top-0 z-30 bg-black md:bg-(--bg-primary)/80 backdrop-blur-md border-b border-[#262626] md:border-(--border-glass) py-0 h-14 md:py-4 px-4 sm:px-6 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button onClick={() => navigate(-1)} className="md:hidden text-white hover:opacity-70 transition-opacity">
+            <ArrowLeft size={24} strokeWidth={2.5} />
+          </button>
+          <div className="flex flex-col">
+            <h1 className="text-[17px] md:text-xl font-bold font-display text-white transition-colors">Bookmarks</h1>
+            <p className="hidden md:block text-xs text-(--text-muted) mt-0.5">Private to you</p>
+          </div>
         </div>
         
         <div className="flex bg-(--bg-glass) p-1 rounded-lg">

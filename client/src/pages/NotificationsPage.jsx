@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, MessageCircle, UserPlus, Repeat2, Bell, ArrowLeft } from 'lucide-react';
+import { Heart, MessageCircle, UserPlus, Repeat2, Bell, ArrowLeft, Bookmark } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
@@ -146,14 +146,19 @@ const NotificationsPage = () => {
             <ArrowLeft size={24} />
           </button>
           <h1 className="text-[17px] font-semibold text-white md:text-xl">Notifications</h1>
-          {unreadCount > 0 ? (
-            <button
-              onClick={handleMarkAllRead}
-              className="text-[13px] font-semibold text-[#0095f6] hover:opacity-70 transition-opacity"
-            >
-              Mark all read
+          <div className="flex items-center gap-4">
+            <button onClick={() => navigate('/bookmarks')} className="text-white hover:opacity-70 transition-opacity">
+              <Bookmark size={24} />
             </button>
-          ) : <div className="w-16" />}
+            {unreadCount > 0 ? (
+              <button
+                onClick={handleMarkAllRead}
+                className="text-[13px] font-semibold text-[#0095f6] hover:opacity-70 transition-opacity"
+              >
+                Mark all
+              </button>
+            ) : <div className="w-4" />}
+          </div>
         </div>
       </div>
 

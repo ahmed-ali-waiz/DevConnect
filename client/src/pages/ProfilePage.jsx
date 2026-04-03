@@ -238,19 +238,29 @@ const ProfilePage = () => {
           <button onClick={() => navigate(-1)} className="text-white hover:opacity-70 transition-opacity">
             <ArrowLeft size={24} strokeWidth={2.5} />
           </button>
-          <h1 className="text-[17px] font-bold text-white truncate max-w-[200px]">{profile.username}</h1>
+          <h1 className="text-[17px] font-bold text-accent-primary truncate max-w-[150px]">{profile.username}</h1>
         </div>
-        {isOwnProfile && (
-          <button onClick={() => navigate('/settings')} className="text-white hover:opacity-70">
-            <Settings size={24} />
+        <div className="flex items-center gap-4">
+          <button onClick={() => navigate('/bookmarks')} className="text-white hover:opacity-70 transition-opacity">
+            <Bookmark size={24} strokeWidth={2} />
           </button>
-        )}
+          {isOwnProfile && (
+            <button onClick={() => navigate('/settings')} className="text-white hover:opacity-70">
+              <Settings size={24} />
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto pb-24 md:pb-6">
 
         {/* ── PROFILE INFO ── */}
         <div className="px-4 pt-4">
+          
+          {/* Desktop Username Header - Only visible on desktop */}
+          <div className="hidden md:flex items-center gap-4 mb-6">
+            <h1 className="text-2xl font-bold text-accent-primary">@{profile.username}</h1>
+          </div>
 
           {/* Avatar + Stats row (Instagram style) */}
           <div className="flex items-center gap-6 mb-4">

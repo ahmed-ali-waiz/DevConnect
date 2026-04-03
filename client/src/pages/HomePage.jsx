@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { MailWarning, X, Users, UserCheck, ChevronRight, Heart, Plus, ChevronDown } from 'lucide-react';
+import { MailWarning, X, Users, UserCheck, ChevronRight, Heart, Plus, ChevronDown, Bookmark } from 'lucide-react';
 import StoryBar from '../components/story/StoryBar';
 import PostComposer from '../components/post/PostComposer';
 import PostCard from '../components/post/PostCard';
@@ -150,10 +150,6 @@ const HomePage = () => {
       <div className="sticky top-0 z-20 bg-black border-b border-[#262626]">
         {/* Mobile Header (Instagram Style) */}
         <div className="md:hidden flex items-center justify-between px-4 h-14">
-          <button className="text-white hover:opacity-70 transition-opacity">
-            <Plus size={24} strokeWidth={2} />
-          </button>
-          
           <div 
             className="flex items-center gap-1 cursor-pointer group" 
             onClick={() => setActiveTab(activeTab === 'For You' ? 'Following' : 'For You')}
@@ -163,10 +159,15 @@ const HomePage = () => {
             </span>
             <ChevronDown size={14} className="mt-1 text-white group-hover:opacity-70" />
           </div>
-
-          <button onClick={() => navigate('/notifications')} className="text-white hover:opacity-70 transition-opacity relative">
-            <Heart size={24} strokeWidth={2} />
-          </button>
+          
+          <div className="flex items-center gap-4">
+            <button onClick={() => navigate('/bookmarks')} className="text-white hover:opacity-70 transition-opacity">
+              <Bookmark size={24} strokeWidth={2} />
+            </button>
+            <button onClick={() => navigate('/notifications')} className="text-white hover:opacity-70 transition-opacity relative">
+              <Heart size={24} strokeWidth={2} />
+            </button>
+          </div>
         </div>
 
         {/* Desktop Header */}

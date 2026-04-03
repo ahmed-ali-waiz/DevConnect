@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, Heart, MessageCircle, Play, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Search, X, Heart, MessageCircle, Play, Image as ImageIcon, Loader2, Bookmark } from 'lucide-react';
 import { search as searchApi } from '../services/searchService';
 import { getExplorePosts } from '../services/postService';
 
@@ -229,8 +229,8 @@ const SearchPage = () => {
     <div className="w-full flex-1 flex flex-col bg-black min-h-dvh">
 
       {/* ── SEARCH BAR ── */}
-      <div className="sticky top-0 z-30 bg-black px-4 pt-3 pb-2">
-        <div className="relative">
+      <div className="sticky top-0 z-30 bg-black px-4 pt-3 pb-2 flex items-center gap-3">
+        <div className="relative flex-1">
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
             <Search size={16} className="text-[#a8a8a8]" />
           </div>
@@ -254,6 +254,9 @@ const SearchPage = () => {
             </button>
           )}
         </div>
+        <button onClick={() => navigate('/bookmarks')} className="text-white hover:opacity-70 transition-opacity p-1">
+          <Bookmark size={24} />
+        </button>
       </div>
 
       {/* ── CONTENT ── */}

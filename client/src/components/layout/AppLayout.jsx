@@ -25,21 +25,23 @@ const AppContent = () => {
   }
 
   return (
-    <div className="flex justify-center min-h-dvh bg-(--bg-primary)">
-      <div className="flex w-full max-w-[1400px] items-start">
-        {/* Left Sidebar — icon-only on md, full on xl */}
-        <Sidebar onCompose={() => setShowCompose(true)} />
+    <div className="flex flex-col min-h-dvh bg-(--bg-primary)">
+      {/* Mobile Navigation (Headers and Bottom Bar) */}
+      <MobileNav onCompose={() => setShowCompose(true)} />
 
-        {/* Main Content Area */}
-        <main className={`flex-1 flex flex-col min-w-0 border-r border-(--border-glass) relative overflow-x-hidden ${isActiveChat ? 'pb-0' : 'pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0'}`}>
-          <Outlet />
-        </main>
+      <div className="flex justify-center flex-1 w-full">
+        <div className="flex w-full max-w-[1400px] items-start">
+          {/* Left Sidebar — icon-only on md, full on xl */}
+          <Sidebar onCompose={() => setShowCompose(true)} />
 
-        {/* Right Panel — only on lg+ */}
-        <RightPanel />
+          {/* Main Content Area */}
+          <main className={`flex-1 flex flex-col min-w-0 border-r border-(--border-glass) relative overflow-x-hidden ${isActiveChat ? 'pb-0' : 'pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0'}`}>
+            <Outlet />
+          </main>
 
-        {/* Mobile Navigation */}
-        <MobileNav onCompose={() => setShowCompose(true)} />
+          {/* Right Panel — only on lg+ */}
+          <RightPanel />
+        </div>
       </div>
 
       {/* Global Compose Modal */}

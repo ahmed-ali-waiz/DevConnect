@@ -5,7 +5,8 @@ import {
   PlusSquare as PlusIcon,
   Code2 as CodeIcon,
   MessageSquare as ChatIcon,
-  User as UserIcon
+  User as UserIcon,
+  Bookmark as BookmarkIcon
 } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { clearAllUnread } from '../../store/slices/chatSlice';
@@ -34,7 +35,7 @@ const MobileNav = ({ onCompose }) => {
   return (
     <>
       {/* Mobile Topbar — hidden on pages that render their own header */}
-      {(!isChatPage && location.pathname !== '/' && location.pathname !== '/notifications' && location.pathname !== '/search' && location.pathname !== '/settings' && location.pathname !== '/code' && !location.pathname.startsWith('/post/') && !location.pathname.startsWith('/profile/')) && (
+      {(!isChatPage && location.pathname !== '/' && location.pathname !== '/notifications' && location.pathname !== '/search' && location.pathname !== '/settings' && location.pathname !== '/bookmarks' && location.pathname !== '/code' && !location.pathname.startsWith('/post/') && !location.pathname.startsWith('/profile/')) && (
         <div className="md:hidden sticky top-0 z-50 bg-(--bg-primary)/90 backdrop-blur-md border-b border-(--border-glass) flex items-center justify-between px-4 h-14">
           <div className="flex items-center space-x-3">
             <div className="w-9 h-9 rounded-lg bg-linear-to-br from-(--accent-primary) to-(--accent-secondary) flex items-center justify-center text-(--bg-primary) font-bold text-base font-display">
@@ -42,7 +43,12 @@ const MobileNav = ({ onCompose }) => {
             </div>
             <span className="font-display font-bold text-base">DevConnect</span>
           </div>
-          {user && <Avatar src={user.profilePic} alt={user.name} size="sm" hasStory={user.hasStory} />}
+          <div className="flex items-center gap-4">
+            <button onClick={() => navigate('/bookmarks')} className="text-(--text-primary) hover:opacity-70 transition-opacity">
+              <BookmarkIcon size={20} strokeWidth={2} />
+            </button>
+            {user && <Avatar src={user.profilePic} alt={user.name} size="sm" hasStory={user.hasStory} />}
+          </div>
         </div>
       )}
 
