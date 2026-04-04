@@ -7,11 +7,11 @@
 ## 🔥 CRITICAL - DO FIRST
 
 ### Week 1: Core Integration
-- [ ] **Create API Service Layer** (`client/src/services/api.js`)
-  - [ ] Axios instance with base URL
-  - [ ] Request interceptor (add JWT token)
-  - [ ] Response interceptor (error handling)
-  - [ ] Token refresh logic
+- [x] **Create API Service Layer** (`client/src/services/api.js`)
+  - [x] Axios instance with base URL
+  - [x] Request interceptor (add JWT token)
+  - [x] Response interceptor (error handling)
+  - [x] Token refresh logic
 
 - [ ] **Auth Service** (`client/src/services/authService.js`)
   - [ ] login(email, password)
