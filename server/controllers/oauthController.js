@@ -20,7 +20,14 @@ const ensureUniqueUsername = async (baseUsername) => {
   return username;
 };
 
-const getApiUrl = () => process.env.API_URL || "http://localhost:5000";
+const getApiUrl = (req) => {
+  if (process.env.API_URL) return process.env.API_URL;
+  if (req) {
+    const protocol = req.protocol === 'https' || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
+    return `${protocol}://${req.get('host')}`;
+  }
+  return "http://localhost:5000";
+};
 
 // @desc    Redirect to Google OAuth
 // @route   GET /api/v1/auth/google
@@ -30,7 +37,7 @@ export const googleAuth = (req, res) => {
   }
   const params = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID,
-    redirect_uri: `${getApiUrl()}/api/v1/auth/google/callback`,
+    redirect_uri: `${getApiUrl(req)}/api/v1/auth/google/callback`,
     response_type: "code",
     scope: "openid email profile",
   });
@@ -51,7 +58,7 @@ export const googleCallback = async (req, res) => {
         code,
         client_id: process.env.GOOGLE_CLIENT_ID,
         client_secret: process.env.GOOGLE_CLIENT_SECRET,
-        redirect_uri: `${getApiUrl()}/api/v1/auth/google/callback`,
+        redirect_uri: `${getApiUrl(req)}/api/v1/auth/google/callback`,
         grant_type: "authorization_code",
       }),
     });
@@ -102,7 +109,7 @@ export const githubAuth = (req, res) => {
   }
   const params = new URLSearchParams({
     client_id: process.env.GITHUB_CLIENT_ID,
-    redirect_uri: `${getApiUrl()}/api/v1/auth/github/callback`,
+    redirect_uri: `${getApiUrl(req)}/api/v1/auth/github/callback`,
     scope: "user:email",
   });
   res.redirect(`https://github.com/login/oauth/authorize?${params}`);
@@ -122,7 +129,7 @@ export const githubCallback = async (req, res) => {
         code,
         client_id: process.env.GITHUB_CLIENT_ID,
         client_secret: process.env.GITHUB_CLIENT_SECRET,
-        redirect_uri: `${getApiUrl()}/api/v1/auth/github/callback`,
+        redirect_uri: `${getApiUrl(req)}/api/v1/auth/github/callback`,
       }),
     });
 
