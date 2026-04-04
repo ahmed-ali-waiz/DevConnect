@@ -1,7 +1,8 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://devconnect-production-2055.up.railway.app/api/v1';
+const backendUrl = import.meta.env.VITE_API_URL || 'https://devconnect-production-2055.up.railway.app';
+const API_BASE = backendUrl.endsWith('/api/v1') ? backendUrl : `${backendUrl}/api/v1`;
 
 const api = axios.create({
   baseURL: API_BASE,

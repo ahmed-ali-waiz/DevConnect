@@ -146,7 +146,7 @@ const RegisterPage = () => {
       {/* Left Panel */}
       <div ref={leftPanelRef} className="hidden md:flex md:w-1/2 lg:w-[45%] relative overflow-hidden bg-linear-to-br from-[#050810] to-[#0d1117] items-center justify-center p-12 order-2 md:order-1 border-r border-(--border-glass)">
         {/* Abstract shapes matching login */}
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
+        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-20 mix-blend-overlay"></div>
         <div className="absolute -top-40 -left-40 w-96 h-96 bg-(--accent-primary) rounded-full mix-blend-screen filter blur-[100px] opacity-20"></div>
         <div className="absolute top-1/2 -right-40 w-96 h-96 bg-(--accent-secondary) rounded-full mix-blend-screen filter blur-[100px] opacity-20"></div>
         

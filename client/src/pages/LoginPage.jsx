@@ -119,7 +119,7 @@ const LoginPage = () => {
       {/* Left Panel - Brand */}
       <div className="hidden md:flex md:w-1/2 lg:w-[55%] relative overflow-hidden bg-linear-to-br from-[#050810] to-[#0d1117] items-center justify-center p-12">
         {/* Animated Background Mesh */}
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
+        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-20 mix-blend-overlay"></div>
         <div className="absolute -top-40 -left-40 w-96 h-96 bg-(--accent-primary) rounded-full mix-blend-screen filter blur-[100px] opacity-20"></div>
         <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-(--accent-secondary) rounded-full mix-blend-screen filter blur-[100px] opacity-20"></div>
         

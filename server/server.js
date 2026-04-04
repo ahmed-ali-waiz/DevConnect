@@ -55,9 +55,12 @@ app.set("onlineUsers", onlineUsers);
 // ───── Global Middleware ─────
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(cors({
-  origin: process.env.NODE_ENV === "production" 
-    ? [process.env.CLIENT_URL, "https://devconnect-production-2055.up.railway.app"]
-    : ["http://localhost:5173", "http://localhost:5174", "https://dev-connect-ruddy-two.vercel.app"],
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "https://dev-connect-ruddy-two.vercel.app",
+    process.env.CLIENT_URL || "https://dev-connect-ruddy-two.vercel.app"
+  ],
   credentials: true,
 }));
 app.use(express.json({ limit: "10mb" }));
