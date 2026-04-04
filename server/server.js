@@ -5,6 +5,8 @@ console.log("DEBUG: MONGO_URI is", process.env.MONGO_URI ? "Set (Check Railway D
 
 import express from "express";
 import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
 import http from "http";
 import { Server } from "socket.io";
 import helmet from "helmet";
@@ -111,12 +113,27 @@ app.use("/api/*", (req, res) => {
 });
 
 // Serve Vite frontend build
-const __dirname = path.resolve();
-app.use(express.static(path.join(__dirname, "dist")));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const distPath = path.join(__dirname, "dist");
+
+console.log("DEBUG: Static files path is", distPath);
+if (fs.existsSync(distPath)) {
+  console.log("DEBUG: dist folder found ✅");
+  console.log("DEBUG: Contents of dist:", fs.readdirSync(distPath).join(", "));
+} else {
+  console.warn("DEBUG: dist folder NOT FOUND ❌ (Expected at", distPath, ")");
+}
+
+app.use(express.static(distPath));
 
 // All other routes serve index.html (for React Router)
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
+  const indexPath = path.join(distPath, "index.html");
+  if (!fs.existsSync(indexPath)) {
+    console.warn("DEBUG: index.html NOT FOUND for route", req.originalUrl, "❌");
+  }
+  res.sendFile(indexPath);
 });
 
 // Global error handler

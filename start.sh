@@ -16,6 +16,10 @@ cd ../server
 npm install
 rm -rf dist
 mv ../client/dist ./dist
+echo "DEBUG: Current directory inside start.sh is $(pwd)"
+echo "DEBUG: Listing contents of the moved dist folder:"
+ls -F ./dist
+ls -F ./dist/assets || echo "assets folder not found"
 
 # 3. Start the node backend
 echo "Starting the backend Server..."
