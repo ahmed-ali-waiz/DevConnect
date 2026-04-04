@@ -115,7 +115,7 @@ app.use("/api/*", (req, res) => {
 // Serve Vite frontend build
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const distPath = path.join(__dirname, "dist");
+const distPath = path.join(__dirname, "..", "client", "dist");
 
 console.log("DEBUG: Static files path is", distPath);
 if (fs.existsSync(distPath)) {
