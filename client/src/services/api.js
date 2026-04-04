@@ -1,7 +1,7 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://devconnect-production-b9e1.up.railway.app/api/v1';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://devconnect-production-2055.up.railway.app/api/v1';
 
 const api = axios.create({
   baseURL: API_BASE,
