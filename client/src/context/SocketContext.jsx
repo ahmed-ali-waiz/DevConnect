@@ -50,7 +50,8 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (user && user._id) {
-      const newSocket = io(import.meta.env.VITE_API_URL || 'https://devconnect-production-2055.up.railway.app', {
+      const socketUrl = import.meta.env.VITE_SERVER_URL || import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'https://devconnect-production-2055.up.railway.app';
+      const newSocket = io(socketUrl, {
         query: { userId: user._id },
         withCredentials: true,
       });

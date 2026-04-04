@@ -353,6 +353,7 @@ export const getBookmarks = async (req, res, next) => {
       options: { sort: { createdAt: -1 } },
     });
 
+    await attachStoryFlags(user.bookmarks);
     res.json(user.bookmarks);
   } catch (error) {
     next(error);

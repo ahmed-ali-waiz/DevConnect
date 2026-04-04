@@ -28,7 +28,7 @@ const MobileNav = ({ onCompose }) => {
     { icon: SearchIcon, path: '/search' },
     { icon: PlusIcon, isAction: true },
     { icon: CodeIcon, path: '/code' },
-    { icon: ChatIcon, path: '/chat', badge: totalUnreadMessages, onClick: () => dispatch(clearAllUnread()) },
+    { icon: ChatIcon, path: '/chat', badge: totalUnreadMessages },
     { icon: UserIcon, path: user ? `/profile/${user.username}` : '/login', isAvatar: true },
   ];
 

@@ -28,7 +28,7 @@ const Sidebar = ({ onCompose }) => {
     { icon: HomeIcon, label: 'Home', path: '/' },
     { icon: SearchIcon, label: 'Search', path: '/search' },
     { icon: BellIcon, label: 'Notifications', path: '/notifications', badge: unreadCount },
-    { icon: ChatIcon, label: 'Messages', path: '/chat', badge: totalUnreadMessages, onClick: () => dispatch(clearAllUnread()) },
+    { icon: ChatIcon, label: 'Messages', path: '/chat', badge: totalUnreadMessages },
     { icon: BookmarkIcon, label: 'Bookmarks', path: '/bookmarks' },
     { icon: TrendingIcon, label: 'Trending', path: '/trending' },
     { icon: UserIcon, label: 'Profile', path: user ? `/profile/${user.username}` : '/login' },
