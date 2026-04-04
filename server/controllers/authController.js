@@ -49,7 +49,7 @@ export const register = async (req, res, next) => {
       user.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000; // 24h
       await user.save();
 
-      const verifyUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/verify-email?token=${verifyToken}`;
+      const verifyUrl = `${process.env.CLIENT_URL || "https://dev-connect-ruddy-two.vercel.app"}/verify-email?token=${verifyToken}`;
       await sendEmail({
         to: user.email,
         subject: "Verify your DevConnect email",
@@ -173,7 +173,7 @@ export const forgotPassword = async (req, res, next) => {
     user.resetPasswordExpires = Date.now() + 60 * 60 * 1000; // 1 hour
     await user.save();
 
-    const resetUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/reset-password?token=${resetToken}`;
+    const resetUrl = `${process.env.CLIENT_URL || "https://dev-connect-ruddy-two.vercel.app"}/reset-password?token=${resetToken}`;
     await sendEmail({
       to: user.email,
       subject: "DevConnect Password Reset",
