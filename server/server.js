@@ -109,19 +109,13 @@ app.use("/api/*", (req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });
 });
 
-import path from "path";
-import { fileURLToPath } from "url";
+// Serve Vite frontend build
+const __dirname = path.resolve();
+app.use(express.static(path.join(__dirname, "dist")));
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Serve static assets if in production or by default fallback
-const clientBuildPath = path.join(__dirname, "../client/dist");
-app.use(express.static(clientBuildPath));
-
-// For any other routes, send the React app (Client-side routing)
+// All other routes serve index.html (for React Router)
 app.get("*", (req, res) => {
-  res.sendFile(path.join(clientBuildPath, "index.html"));
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
 // Global error handler

@@ -10,8 +10,13 @@ cd client
 npm install
 npm run build
 
-# 2. Navigate to server, install dependencies, and start the node backend
-echo "Starting the backend Server..."
+# 2. Ensure server directory exists and move frontend build
+echo "Moving frontend build to server directory..."
 cd ../server
 npm install
+rm -rf dist
+mv ../client/dist ./dist
+
+# 3. Start the node backend
+echo "Starting the backend Server..."
 node server.js

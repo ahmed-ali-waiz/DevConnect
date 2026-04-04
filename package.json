@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Root package.json for Railway deployment",
   "scripts": {
-    "build": "cd client && npm install --include=dev && npm run build && cd ../server && npm install",
+    "build": "cd client && npm install --include=dev && npm run build && cd ../server && npm install && rm -rf dist && mv ../client/dist ./dist",
     "start": "bash start.sh"
   },
   "engines": {
