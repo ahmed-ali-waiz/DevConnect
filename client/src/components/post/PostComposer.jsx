@@ -612,7 +612,7 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
                     </button>
 
                     {/* Emoji picker toggle */}
-                    <div className="relative" ref={emojiRef}>
+                    <div className="relative hidden sm:block" ref={emojiRef}>
                       <button
                         type="button"
                         onClick={() => setShowEmoji(!showEmoji)}
