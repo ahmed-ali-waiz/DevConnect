@@ -79,19 +79,19 @@ const AudioMessageBubble = ({ src, isMe }) => {
   };
 
   return (
-    <div className={`flex items-center gap-3 px-4 py-3 rounded-[22px] min-w-[200px] ${
+    <div className={`flex items-center gap-2 px-3 py-2 rounded-[18px] min-w-[160px] ${
       isMe
         ? 'bg-gradient-to-tr from-[#3797f0] to-[#6a35ff] rounded-br-[4px]'
         : 'bg-[#262626] rounded-bl-[4px]'
     }`}>
       <button
         onClick={togglePlay}
-        className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center shrink-0 hover:bg-white/30 transition-colors"
+        className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0 hover:bg-white/30 transition-colors"
       >
         {isPlaying ? (
-          <Pause className="w-4 h-4 text-white" fill="white" />
+          <Pause className="w-3 h-3 text-white" fill="white" />
         ) : (
-          <Play className="w-4 h-4 text-white ml-0.5" fill="white" />
+          <Play className="w-3 h-3 text-white ml-0.5" fill="white" />
         )}
       </button>
 
@@ -620,7 +620,7 @@ const ChatPage = () => {
 
             {/* Messages */}
             <div
-              className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-1 custom-scrollbar bg-[#000000]"
+              className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-0.5 custom-scrollbar bg-[#000000]"
               onClick={() => { setContextMenu(null); setShowConvoMenu(false); }}
             >
               {loadingMessages ? (
@@ -640,7 +640,7 @@ const ChatPage = () => {
                     className={`flex ${isMe ? 'justify-end' : 'justify-start mb-0.5'}`}
                     onContextMenu={(e) => handleContextMenu(e, msg)}
                   >
-                    <div className="max-w-[85%] sm:max-w-[75%] flex items-end gap-2 shrink-0 min-w-0">
+                    <div className="max-w-[80%] sm:max-w-[70%] flex items-end gap-2 shrink-0 min-w-0">
                       {!isMe && (
                         <div 
                           className="w-[28px] h-[28px] shrink-0 mb-1 cursor-pointer hover:opacity-80 transition-opacity"
@@ -670,11 +670,11 @@ const ChatPage = () => {
                               />
                             )}
                             {msg.text && (
-                              <div className={`px-4 py-[10px] min-h-[44px] flex flex-col justify-center ${isMe
-                                  ? 'bg-linear-to-tr from-[#3797f0] to-[#6a35ff] text-white rounded-[22px] rounded-br-[4px]'
-                                  : 'bg-[#262626] text-white rounded-[22px] rounded-bl-[4px]'
+                              <div className={`px-3 py-[7px] min-h-[38px] flex flex-col justify-center ${isMe
+                                  ? 'bg-linear-to-tr from-[#3797f0] to-[#6a35ff] text-white rounded-[18px] rounded-br-[4px]'
+                                  : 'bg-[#262626] text-white rounded-[18px] rounded-bl-[4px]'
                                 }`}>
-                                <p className="text-[15px] leading-[1.3] break-words">{msg.text}</p>
+                                <p className="text-[14px] leading-[1.3] break-words">{msg.text}</p>
                               </div>
                             )}
                           </>

@@ -354,7 +354,7 @@ const CommentSection = ({
                 </button>
               </div>
             )}
-            <div className="flex items-center gap-1">
+            <div className="flex-1 flex items-center gap-2 bg-[#1a1a1a] border border-[#333] rounded-full px-4 py-1 focus-within:border-(--accent-primary) focus-within:shadow-[0_0_15px_rgba(56,189,248,0.25)] transition-all">
               <input
                 ref={inputRef}
                 type="text"
