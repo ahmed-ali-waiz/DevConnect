@@ -63,6 +63,7 @@ app.use(cors({
       "http://localhost:5173",
       "http://localhost:5174",
       "https://dev-connect-ruddy-two.vercel.app",
+      "https://devconnect-production-2055.up.railway.app",
       process.env.CLIENT_URL
     ];
     if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
