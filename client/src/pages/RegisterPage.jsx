@@ -12,7 +12,7 @@ import { updateProfile } from '../services/userService';
 import { setUser, setToken } from '../store/slices/authSlice';
 
 // Utility for debouncing username check
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://devconnect-production-b9e1.up.railway.app';
 
 const useDebounce = (value, delay) => {
   const [debouncedValue, setDebouncedValue] = useState(value);

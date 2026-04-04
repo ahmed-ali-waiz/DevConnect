@@ -38,11 +38,9 @@ const server = http.createServer(app);
 // Socket.IO Setup
 const io = new Server(server, {
   cors: {
-    origin: [
-      process.env.CLIENT_URL || "http://localhost:5173",
-      "http://localhost:5173",
-      "http://localhost:5174",
-    ],
+    origin: process.env.NODE_ENV === "production" 
+      ? [process.env.CLIENT_URL, "https://devconnect-production-b9e1.up.railway.app"]
+      : ["http://localhost:5173", "http://localhost:5174"],
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -57,11 +55,9 @@ app.set("onlineUsers", onlineUsers);
 // ───── Global Middleware ─────
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(cors({
-  origin: [
-    process.env.CLIENT_URL || "http://localhost:5173",
-    "http://localhost:5173",
-    "http://localhost:5174",
-  ],
+  origin: process.env.NODE_ENV === "production" 
+    ? [process.env.CLIENT_URL, "https://devconnect-production-b9e1.up.railway.app"]
+    : ["http://localhost:5173", "http://localhost:5174"],
   credentials: true,
 }));
 app.use(express.json({ limit: "10mb" }));
