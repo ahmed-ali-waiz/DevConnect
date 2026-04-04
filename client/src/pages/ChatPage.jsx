@@ -544,10 +544,9 @@ const ChatPage = () => {
         {activeChat ? (
           <>
             {/* ── Header ── */}
-            <div className="h-[56px] px-3 border-b border-[#262626] flex items-center justify-between bg-[#000000] z-10 shrink-0 sticky top-0">
-
+            <div className="h-[56px] px-2 border-b border-[#262626] flex items-center justify-between bg-[#000000] z-10 shrink-0 sticky top-0">
               {/* Left: back + avatar + name */}
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center gap-1.5 min-w-0">
                 {/* Back button — moved slightly right with ml-2, smaller icon */}
                 <button
                   onClick={() => { dispatch(setActiveChat(null)); navigate('/chat', { replace: true }); }}
@@ -556,7 +555,7 @@ const ChatPage = () => {
                   <ArrowLeft className="w-5 h-5 stroke-[2]" />
                 </button>
 
-                <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
                   <div
                     className="cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={() => otherParticipant?.username && navigate(`/profile/${otherParticipant.username}`)}
@@ -581,7 +580,7 @@ const ChatPage = () => {
               </div>
 
               {/* Right: action buttons — smaller & tighter */}
-              <div className="flex items-center gap-3 shrink-0 pr-1">
+              <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 pr-1">
                 <button
                   onClick={() => startCall(otherParticipant, 'audio')}
                   className="hover:opacity-70 transition-opacity p-1"
@@ -718,10 +717,10 @@ const ChatPage = () => {
             )}
 
             {/* Input Bar */}
-            <div className="px-2 sm:px-4 pb-[calc(12px+env(safe-area-inset-bottom,0px))] pt-2 bg-black border-t border-[#262626] shrink-0">
-              <div className="flex items-end gap-3 max-w-full">
-                <button className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#0095f6] flex items-center justify-center shrink-0 mb-0.5 hover:bg-[#1877f2] transition-colors shadow-sm">
-                  <Camera className="w-[22px] h-[22px] stroke-[2]" fill="white" />
+            <div className="px-1 sm:px-4 pb-[calc(12px+env(safe-area-inset-bottom,0px))] pt-2 bg-black border-t border-[#262626] shrink-0">
+              <div className="flex items-end gap-1.5 sm:gap-3 max-w-full">
+                <button className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#0095f6] flex items-center justify-center shrink-0 mb-0.5 hover:bg-[#1877f2] transition-colors shadow-sm">
+                  <Camera className="w-[18px] h-[18px] sm:w-[22px] sm:h-[22px] stroke-[2]" fill="white" />
                 </button>
 
                 <div className="flex-1 bg-[#262626] rounded-[24px] relative flex flex-col min-h-11 border border-[#333]">
@@ -792,7 +791,7 @@ const ChatPage = () => {
                             <>
                               <button 
                                 type="button" 
-                                className="p-2 hover:opacity-70 transition-opacity"
+                                className="hidden min-[300px]:flex p-2 hover:opacity-70 transition-opacity"
                                 onClick={startRecording}
                               >
                                 <Mic className="w-[22px] h-[22px] stroke-[2]" />
