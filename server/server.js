@@ -56,7 +56,29 @@ app.set("io", io);
 app.set("onlineUsers", onlineUsers);
 
 // ───── Global Middleware ─────
-app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        imgSrc: [
+          "'self'",
+          "data:",
+          "blob:",
+          "res.cloudinary.com",
+          "lh3.googleusercontent.com",
+          "avatars.githubusercontent.com",
+          "https://*",
+        ],
+        fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+        connectSrc: ["'self'", "https://*", "wss://*", "ws://*"],
+      },
+    },
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
 app.use(cors({
   origin: function (origin, callback) {
     const allowedOrigins = [
