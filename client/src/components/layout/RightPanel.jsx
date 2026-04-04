@@ -18,13 +18,14 @@ const RightPanel = () => {
   const [followLoading, setFollowLoading] = useState({});
 
   useEffect(() => {
+    if (!authUser) return;
     getTrendingHashtags()
       .then(data => setTrendingTags(data.slice(0, 5)))
       .catch(() => {});
     getSuggestedUsers()
       .then(data => setSuggestions((data.users || data).slice(0, 4)))
       .catch(() => {});
-  }, []);
+  }, [authUser]);
 
   // Check if user is being followed using Redux state
   const isFollowing = (userId) => {
