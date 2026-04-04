@@ -344,7 +344,7 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
   };
 
   return (
-    <div className="glass-card p-3 sm:p-4 mx-4 md:mx-0 mb-6 transition-all duration-300 relative">
+    <div className="glass-card p-1.5 sm:p-4 mx-4 md:mx-0 mb-6 transition-all duration-300 relative">
       <form onSubmit={handleSubmit}>
         <div className="flex space-x-3">
           <Avatar
@@ -549,9 +549,9 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center justify-between pt-3 mt-2 border-t border-(--border-glass) flex-nowrap gap-2"
+                  className="flex items-center justify-between pt-3 mt-2 border-t border-(--border-glass) flex-nowrap gap-0.5"
                 >
-                  <div className="flex items-center gap-0.5 sm:gap-2">
+                  <div className="flex items-center gap-0 sm:gap-2">
                     {/* Photo upload — supports multiple */}
                     <label
                       className={`p-2 rounded-full cursor-pointer transition-colors group relative touch-target ${
@@ -560,7 +560,7 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
                           : 'text-(--accent-primary) hover:bg-(--accent-primary)/10'
                       }`}
                     >
-                      <ImageIcon size={20} />
+                      <ImageIcon size={18} />
                       <input
                         type="file"
                         accept="image/*"
@@ -576,13 +576,13 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
 
                     {/* Video upload */}
                     <label
-                      className={`p-2 rounded-full cursor-pointer transition-colors group relative hidden sm:flex touch-target ${
+                      className={`p-2 rounded-full cursor-pointer transition-colors group relative hidden min-[340px]:flex touch-target ${
                         mediaItems.length > 0
                           ? 'text-(--text-dim) cursor-not-allowed'
                           : 'text-(--accent-primary) hover:bg-(--accent-primary)/10'
                       }`}
                     >
-                      <VideoIcon size={20} />
+                      <VideoIcon size={18} />
                       <input
                         type="file"
                         accept="video/*"
@@ -605,7 +605,7 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
                           : 'text-(--accent-secondary) hover:bg-(--accent-secondary)/10'
                       }`}
                     >
-                      <CodeIcon size={20} />
+                      <CodeIcon size={18} />
                       <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] bg-(--bg-secondary) text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap">
                         Code
                       </span>
@@ -622,7 +622,7 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
                             : 'text-(--accent-green) hover:bg-(--accent-green)/10'
                         }`}
                       >
-                        <EmojiIcon size={20} />
+                        <EmojiIcon size={18} />
                         <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] bg-(--bg-secondary) text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap">
                           Emoji
                         </span>
@@ -665,7 +665,7 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+                  <div className="flex items-center gap-1 sm:gap-3 shrink-0">
                     {/* Character counter */}
                     {text.length > 0 && (
                       <motion.div
@@ -718,7 +718,7 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
                       size="sm"
                       disabled={!hasContent || charsRemaining < 0}
                       isLoading={isSubmitting}
-                      className="px-6"
+                      className="px-3 sm:px-6"
                     >
                       Post
                     </Button>
