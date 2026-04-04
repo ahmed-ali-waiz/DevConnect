@@ -52,8 +52,6 @@ html, body {
   margin: 0;
   padding: 0;
   min-height: 100dvh;
-  height: 100dvh;
-  overflow: hidden; /* Prevent body scroll, layout takes care of it */
 }
 
 *, *::before, *::after {

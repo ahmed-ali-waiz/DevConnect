@@ -718,9 +718,9 @@ const ChatPage = () => {
             )}
 
             {/* Input Bar */}
-            <div className="px-4 pb-[calc(12px+env(safe-area-inset-bottom,0px))] pt-2 bg-black border-t border-[#262626] shrink-0">
+            <div className="px-2 sm:px-4 pb-[calc(12px+env(safe-area-inset-bottom,0px))] pt-2 bg-black border-t border-[#262626] shrink-0">
               <div className="flex items-end gap-3 max-w-full">
-                <button className="w-10 h-10 rounded-full bg-[#0095f6] flex items-center justify-center shrink-0 mb-0.5 hover:bg-[#1877f2] transition-colors shadow-sm">
+                <button className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#0095f6] flex items-center justify-center shrink-0 mb-0.5 hover:bg-[#1877f2] transition-colors shadow-sm">
                   <Camera className="w-[22px] h-[22px] stroke-[2]" fill="white" />
                 </button>
 
@@ -804,7 +804,7 @@ const ChatPage = () => {
                               <div className="relative flex items-center justify-center p-2 hover:opacity-70 transition-opacity cursor-pointer">
                                 <EmojiPickerButton buttonClassName="p-0 text-white rounded-full transition-colors" onEmoji={insertEmoji} customIcon={<Smile className="w-[22px] h-[22px] stroke-[2]" />} />
                               </div>
-                              <button type="button" className="p-2 hover:opacity-70 transition-opacity">
+                              <button type="button" className="hidden min-[360px]:flex p-2 hover:opacity-70 transition-opacity">
                                 <Plus className="w-[24px] h-[24px] stroke-[2] bg-[rgba(255,255,255,0.15)] rounded-full p-0.5" />
                               </button>
                             </>

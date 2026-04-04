@@ -549,9 +549,9 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center justify-between pt-3 mt-2 border-t border-(--border-glass)"
+                  className="flex items-center justify-between pt-3 mt-2 border-t border-(--border-glass) flex-nowrap gap-2"
                 >
-                  <div className="flex space-x-1 sm:space-x-2">
+                  <div className="flex items-center gap-0.5 sm:gap-2">
                     {/* Photo upload — supports multiple */}
                     <label
                       className={`p-2 rounded-full cursor-pointer transition-colors group relative touch-target ${
@@ -665,7 +665,7 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
                     </button>
                   </div>
 
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
                     {/* Character counter */}
                     {text.length > 0 && (
                       <motion.div
@@ -673,7 +673,7 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
                         animate={{ opacity: 1, scale: 1 }}
                         className="relative"
                       >
-                        <svg width="28" height="28" viewBox="0 0 28 28" className="rotate-[-90deg]">
+                        <svg width="24" height="24" viewBox="0 0 28 28" className="rotate-[-90deg] sm:w-7 sm:h-7">
                           <circle
                             cx="14"
                             cy="14"
