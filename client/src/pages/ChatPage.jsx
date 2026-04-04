@@ -446,7 +446,7 @@ const ChatPage = () => {
   });
 
   return (
-    <div className={`w-full justify-center flex bg-black text-white overflow-hidden ${activeChat ? 'h-[100dvh] md:h-dvh' : 'flex-1'}`}>
+    <div className={`w-full justify-center flex bg-black text-white overflow-hidden ${activeChat ? 'h-dvh' : 'flex-1 h-[calc(100dvh-3.5rem)] md:h-dvh'}`}>
 
       {/* Left Panel */}
       <div className={`w-full md:w-80 lg:w-90 shrink-0 border-r border-[#262626] flex flex-col bg-[#000000] ${activeChat ? 'hidden md:flex' : 'flex'}`}>
@@ -544,7 +544,7 @@ const ChatPage = () => {
         {activeChat ? (
           <>
             {/* ── Header ── */}
-            <div className="h-[56px] px-3 border-b border-[#262626] flex items-center justify-between bg-[#000000] z-10 shrink-0">
+            <div className="h-[56px] px-3 border-b border-[#262626] flex items-center justify-between bg-[#000000] z-10 shrink-0 sticky top-0">
 
               {/* Left: back + avatar + name */}
               <div className="flex items-center gap-2 min-w-0">
@@ -718,7 +718,7 @@ const ChatPage = () => {
             )}
 
             {/* Input Bar */}
-            <div className="px-4 pb-3 pt-2 bg-black border-t border-[#262626] shrink-0">
+            <div className="px-4 pb-[calc(12px+env(safe-area-inset-bottom,0px))] pt-2 bg-black border-t border-[#262626] shrink-0">
               <div className="flex items-end gap-3 max-w-full">
                 <button className="w-10 h-10 rounded-full bg-[#0095f6] flex items-center justify-center shrink-0 mb-0.5 hover:bg-[#1877f2] transition-colors shadow-sm">
                   <Camera className="w-[22px] h-[22px] stroke-[2]" fill="white" />

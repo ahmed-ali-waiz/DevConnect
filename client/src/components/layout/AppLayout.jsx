@@ -35,7 +35,13 @@ const AppContent = () => {
           <Sidebar onCompose={() => setShowCompose(true)} />
 
           {/* Main Content Area */}
-          <main className={`flex-1 flex flex-col min-w-0 border-r border-(--border-glass) relative overflow-x-hidden ${isActiveChat ? 'pb-0' : 'pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0'}`}>
+          <main 
+            className={`flex-1 flex flex-col min-w-0 border-r border-(--border-glass) relative overflow-x-hidden ${
+              isActiveChat 
+                ? 'pb-0 h-dvh' 
+                : 'pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:pb-0'
+            }`}
+          >
             <Outlet />
           </main>
 

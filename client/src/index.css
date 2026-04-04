@@ -52,6 +52,8 @@ html, body {
   margin: 0;
   padding: 0;
   min-height: 100dvh;
+  height: 100dvh;
+  overflow: hidden; /* Prevent body scroll, layout takes care of it */
 }
 
 *, *::before, *::after {
@@ -150,7 +152,13 @@ code, pre, .font-mono {
 
 /* iOS safe-area inset helpers */
 .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.pt-safe { padding-top: env(safe-area-inset-top, 0px); }
 .mb-safe { margin-bottom: env(safe-area-inset-bottom, 0px); }
+.mt-safe { margin-top: env(safe-area-inset-top, 0px); }
+
+/* Unified Viewport Height */
+.h-dvh { height: 100dvh; }
+.min-h-dvh { min-height: 100dvh; }
 
 /* Touch-friendly — prevent callout / highlight on tap */
 button, a, [role="button"] {
