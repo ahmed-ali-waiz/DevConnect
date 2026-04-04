@@ -41,9 +41,13 @@ const server = http.createServer(app);
 // Socket.IO Setup
 const io = new Server(server, {
   cors: {
-    origin: process.env.NODE_ENV === "production" 
-      ? [process.env.CLIENT_URL, "https://devconnect-production-2055.up.railway.app"]
-      : ["http://localhost:5173", "http://localhost:5174", "https://dev-connect-ruddy-two.vercel.app"],
+    origin: [
+      "https://dev-connect-ruddy-two.vercel.app",
+      "https://devconnect-production-2055.up.railway.app",
+      "http://localhost:5173",
+      "http://localhost:5174",
+      process.env.CLIENT_URL
+    ],
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -80,20 +84,13 @@ app.use(
   })
 );
 app.use(cors({
-  origin: function (origin, callback) {
-    const allowedOrigins = [
-      "http://localhost:5173",
-      "http://localhost:5174",
-      "https://dev-connect-ruddy-two.vercel.app",
-      "https://devconnect-production-2055.up.railway.app",
-      process.env.CLIENT_URL
-    ];
-    if (!origin || allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
+  origin: [
+    "https://dev-connect-ruddy-two.vercel.app",
+    "https://devconnect-production-2055.up.railway.app",
+    "http://localhost:5173",
+    "http://localhost:5174",
+    process.env.CLIENT_URL
+  ],
   credentials: true,
 }));
 app.use(express.json({ limit: "10mb" }));
