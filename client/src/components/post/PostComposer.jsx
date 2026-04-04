@@ -344,7 +344,7 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
   };
 
   return (
-    <div className="glass-card p-1.5 sm:p-4 mx-4 md:mx-0 mb-6 transition-all duration-300 relative">
+    <div className="p-0 sm:p-2 mb-6 transition-all duration-300 relative">
       <form onSubmit={handleSubmit}>
         <div className="flex space-x-3">
           <Avatar
@@ -355,7 +355,7 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
           />
 
           <div
-            className="flex-1 min-w-0"
+            className="flex-1 min-w-0 bg-[#121212]/80 border border-[#2d2d2d] rounded-2xl p-3 sm:p-4 shadow-xl focus-within:border-(--accent-primary)/40 focus-within:shadow-[0_0_20px_rgba(56,189,248,0.08)] transition-all duration-300"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -385,7 +385,7 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
                 placeholder="Add a caption (optional)..."
                 value={text}
                 onChange={handleTextChange}
-                className="w-full bg-transparent text-(--text-primary) placeholder-(--text-muted) focus:outline-none text-sm mb-3 pb-3 border-b border-(--border-glass)"
+                className="w-full bg-transparent text-(--text-primary) placeholder-(--text-muted) focus:outline-none text-sm mb-3 pb-3 border-b border-[#2d2d2d]"
               />
             ) : (
               <textarea
@@ -549,7 +549,7 @@ const PostComposer = ({ onPostCreated, codeOnly = false }) => {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center justify-between pt-3 mt-2 border-t border-(--border-glass) flex-nowrap gap-0.5"
+                  className="flex items-center justify-between pt-2 mt-2 flex-nowrap gap-0.5"
                 >
                   <div className="flex items-center gap-0 sm:gap-2">
                     {/* Photo upload — supports multiple */}
